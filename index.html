@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>QBM Operator Hub · DJI Queensbay</title>
-  <meta name="description" content="Internal tools for DJI Queensbay Mall operators — sales analytics and workshop management." />
+  <meta name="description" content="Internal tools for DJI Queensbay Mall operators." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -13,15 +13,17 @@
 
     :root {
       --blue: #2563eb;
-      --blue-dim: rgba(37,99,235,0.12);
-      --blue-glow: rgba(37,99,235,0.28);
-      --bg: #080c14;
-      --surface: #0f1523;
-      --surface2: #161d2e;
+      --blue-light: #3b82f6;
+      --blue-bright: #60a5fa;
+      --bg: #060a12;
+      --surface: #0d1422;
+      --surface2: #131b2e;
+      --surface3: #1a2440;
       --border: rgba(255,255,255,0.07);
-      --border-hover: rgba(255,255,255,0.15);
-      --text: #ffffff;
-      --muted: #7a8499;
+      --border-hover: rgba(96,165,250,0.3);
+      --text: #f1f5f9;
+      --muted: #64748b;
+      --muted2: #94a3b8;
     }
 
     body {
@@ -30,32 +32,35 @@
       color: var(--text);
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
     }
 
+    /* ── GRID BG ── */
     body::before {
       content: '';
       position: fixed;
       inset: 0;
       background-image:
-        linear-gradient(rgba(37,99,235,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(37,99,235,0.03) 1px, transparent 1px);
-      background-size: 60px 60px;
+        linear-gradient(rgba(37,99,235,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(37,99,235,0.04) 1px, transparent 1px);
+      background-size: 52px 52px;
       pointer-events: none;
       z-index: 0;
     }
 
     /* ── NAV ── */
     nav {
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 200;
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 0 2rem;
-      height: 58px;
-      background: rgba(8,12,20,0.92);
-      backdrop-filter: blur(20px);
+      height: 56px;
+      background: rgba(6,10,18,0.85);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
       border-bottom: 1px solid var(--border);
     }
 
@@ -67,261 +72,330 @@
     }
 
     .nav-logo {
-      width: 30px;
-      height: 30px;
-      background: var(--blue);
-      border-radius: 7px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, #2563eb, #3b82f6);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 16px rgba(37,99,235,0.4);
     }
-
     .nav-logo svg { width: 18px; height: 18px; fill: #fff; }
 
     .nav-name {
       font-size: 14px;
       font-weight: 700;
       color: var(--text);
+      letter-spacing: -0.01em;
+    }
+    .nav-name span { color: var(--blue-bright); }
+
+    .nav-right {
+      display: flex; align-items: center; gap: 8px;
     }
 
-    .nav-name span { color: #60a5fa; }
-
-    .nav-badge {
+    .nav-pill {
       font-size: 10px;
       font-weight: 600;
-      color: var(--muted);
+      color: var(--muted2);
       background: var(--surface2);
       border: 1px solid var(--border);
       border-radius: 20px;
-      padding: 3px 10px;
-      letter-spacing: 0.05em;
+      padding: 4px 11px;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
     }
 
-    .nav-cta {
-      font-size: 13px;
+    .nav-btn {
+      font-size: 12px;
       font-weight: 600;
       color: #fff;
       background: var(--blue);
       text-decoration: none;
-      padding: 7px 16px;
-      border-radius: 8px;
-      transition: opacity 0.18s;
+      padding: 6px 14px;
+      border-radius: 7px;
+      transition: background 0.18s, box-shadow 0.18s;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .nav-btn:hover {
+      background: var(--blue-light);
+      box-shadow: 0 0 18px rgba(37,99,235,0.45);
     }
 
-    .nav-cta:hover { opacity: .85; }
-
-    /* ── MAIN WRAPPER ── */
-    .page {
+    /* ── HERO ── */
+    .hero {
       position: relative;
       z-index: 1;
-      max-width: 780px;
-      margin: 0 auto;
-      padding: 48px 1.5rem 80px;
-    }
-
-    /* ── SECTION HEADER ── */
-    .section-header {
-      margin-bottom: 24px;
-    }
-
-    .section-label {
-      font-size: 11px;
-      font-weight: 700;
-      color: #60a5fa;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      margin-bottom: 6px;
-    }
-
-    .section-title {
-      font-size: 26px;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-    }
-
-    /* ── TOOLS LIST ── */
-    .tools-list {
+      padding: 130px 1.5rem 64px;
+      text-align: center;
       display: flex;
       flex-direction: column;
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      overflow: hidden;
-      background: var(--surface);
-      margin-bottom: 40px;
+      align-items: center;
     }
 
-    .tool-row {
+    /* ambient glow orb */
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 60px; left: 50%;
+      transform: translateX(-50%);
+      width: 600px; height: 360px;
+      background: radial-gradient(ellipse at center, rgba(37,99,235,0.18) 0%, rgba(37,99,235,0.06) 50%, transparent 70%);
+      pointer-events: none;
+      filter: blur(1px);
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--blue-bright);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      background: rgba(37,99,235,0.1);
+      border: 1px solid rgba(37,99,235,0.25);
+      border-radius: 20px;
+      padding: 5px 14px;
+      margin-bottom: 20px;
+    }
+
+    .hero-eyebrow::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: var(--blue-bright);
+      border-radius: 50%;
+      animation: pulse 2.2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    .hero-greeting {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted2);
+      margin-bottom: 10px;
+      letter-spacing: 0.01em;
+    }
+
+    .hero-title {
+      font-size: clamp(32px, 6vw, 52px);
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      line-height: 1.08;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #f1f5f9 30%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: 15px;
+      color: var(--muted2);
+      max-width: 400px;
+      line-height: 1.6;
+      margin-bottom: 36px;
+    }
+
+    .hero-clock {
+      font-size: 12px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── TOOLS GRID ── */
+    .tools-section {
+      position: relative;
+      z-index: 1;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 1.5rem 100px;
+    }
+
+    .tools-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 16px;
       display: flex;
       align-items: center;
+      gap: 10px;
+    }
+    .tools-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       gap: 16px;
-      padding: 18px 22px;
+      margin-bottom: 16px;
+    }
+
+    .tool-card {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px 28px 24px;
       text-decoration: none;
       color: var(--text);
-      border-bottom: 1px solid var(--border);
-      transition: background 0.15s;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      overflow: hidden;
+      transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+      cursor: pointer;
     }
 
-    .tool-row:last-child { border-bottom: none; }
-    .tool-row:not(.disabled):hover { background: var(--surface2); }
-    .tool-row.disabled { cursor: default; opacity: 0.45; }
+    .tool-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(37,99,235,0.06) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+    }
 
-    .tool-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
+    .tool-card:hover {
+      border-color: var(--border-hover);
+      box-shadow: 0 0 0 1px rgba(96,165,250,0.15), 0 8px 32px rgba(0,0,0,0.3), 0 0 40px rgba(37,99,235,0.12);
+      transform: translateY(-2px);
+    }
+    .tool-card:hover::before { opacity: 1; }
+
+    .tool-card-top {
       display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 19px;
-      flex-shrink: 0;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .tool-card-icon {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
       background: var(--surface2);
       border: 1px solid var(--border);
     }
 
-    .tool-info { flex: 1; min-width: 0; }
-
-    .tool-name {
-      font-size: 14px;
-      font-weight: 700;
-      margin-bottom: 2px;
-    }
-
-    .tool-desc {
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .tool-right {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-shrink: 0;
-    }
-
-    /* badges */
     .badge {
       font-size: 10px;
       font-weight: 700;
-      padding: 3px 9px;
+      padding: 4px 10px;
       border-radius: 6px;
       text-transform: uppercase;
       letter-spacing: 0.05em;
       white-space: nowrap;
     }
-
     .badge-live {
-      background: rgba(5,150,105,0.15);
+      background: rgba(5,150,105,0.12);
       color: #10b981;
-      border: 1px solid rgba(5,150,105,0.25);
+      border: 1px solid rgba(5,150,105,0.22);
     }
-
     .badge-new {
-      background: rgba(37,99,235,0.15);
+      background: rgba(37,99,235,0.14);
       color: #60a5fa;
       border: 1px solid rgba(37,99,235,0.28);
     }
-
     .badge-soon {
       background: rgba(245,158,11,0.1);
       color: #f59e0b;
       border: 1px solid rgba(245,158,11,0.2);
     }
 
-    .arrow-icon {
-      width: 16px;
-      height: 16px;
-      color: var(--muted);
-      transition: transform 0.18s, color 0.18s;
+    .tool-card-name {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
     }
 
-    .tool-row:not(.disabled):hover .arrow-icon {
-      transform: translateX(3px);
-      color: #60a5fa;
+    .tool-card-desc {
+      font-size: 13px;
+      color: var(--muted2);
+      line-height: 1.55;
+      flex: 1;
+      margin-bottom: 24px;
     }
 
-    /* coming soon placeholder row */
-    .coming-row {
+    .tool-card-footer {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 14px 22px;
-      opacity: 0.4;
+      justify-content: space-between;
     }
 
-    .coming-dot {
-      width: 6px;
-      height: 6px;
+    .tool-launch-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--blue-bright);
+      background: rgba(37,99,235,0.1);
+      border: 1px solid rgba(37,99,235,0.22);
+      border-radius: 8px;
+      padding: 7px 14px;
+      transition: background 0.18s, border-color 0.18s;
+      letter-spacing: 0.01em;
+    }
+    .tool-card:hover .tool-launch-btn {
+      background: rgba(37,99,235,0.18);
+      border-color: rgba(96,165,250,0.4);
+    }
+
+    .tool-launch-btn svg {
+      width: 13px; height: 13px;
+      transition: transform 0.18s;
+    }
+    .tool-card:hover .tool-launch-btn svg {
+      transform: translateX(3px);
+    }
+
+    /* ── COMING SOON STRIP ── */
+    .coming-strip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      opacity: 0.55;
+    }
+
+    .coming-dots {
+      display: flex; gap: 5px;
+    }
+    .coming-dots span {
+      width: 5px; height: 5px;
       border-radius: 50%;
       background: var(--muted);
-      flex-shrink: 0;
     }
 
     .coming-text {
       font-size: 12px;
-      color: var(--muted);
+      color: var(--muted2);
       font-style: italic;
-    }
-
-    /* ── ABOUT CARD ── */
-    .about-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px 22px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .about-title {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-bottom: 2px;
-    }
-
-    .about-row {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-    }
-
-    .about-icon {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      flex-shrink: 0;
-    }
-
-    .about-row-text strong {
-      display: block;
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 1px;
-    }
-
-    .about-row-text span {
-      font-size: 11.5px;
-      color: var(--muted);
+      flex: 1;
     }
 
     /* ── FOOTER ── */
     footer {
-      position: relative;
-      z-index: 1;
+      position: relative; z-index: 1;
       border-top: 1px solid var(--border);
-      background: var(--surface);
-      padding: 24px 2rem;
+      padding: 22px 2rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -330,33 +404,29 @@
     }
 
     .footer-brand {
-      display: flex;
-      align-items: center;
-      gap: 9px;
+      display: flex; align-items: center; gap: 9px;
     }
-
     .footer-logo {
-      width: 26px;
-      height: 26px;
+      width: 26px; height: 26px;
       background: var(--blue);
       border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
     }
-
-    .footer-logo svg { width: 16px; height: 16px; fill: #fff; }
-
+    .footer-logo svg { width: 15px; height: 15px; fill: #fff; }
     .footer-text strong { display: block; font-size: 12px; font-weight: 700; }
     .footer-text span { font-size: 11px; color: var(--muted); }
 
     .footer-copy { font-size: 11px; color: var(--muted); text-align: right; }
-    .footer-copy strong { color: var(--text); font-weight: 600; }
+    .footer-copy strong { color: var(--muted2); font-weight: 600; }
 
-    @media (max-width: 600px) {
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
       nav { padding: 0 1rem; }
-      .nav-badge { display: none; }
-      .page { padding: 32px 1rem 64px; }
+      .nav-pill { display: none; }
+      .hero { padding: 110px 1rem 48px; }
+      .hero::before { width: 340px; height: 220px; }
+      .tools-section { padding: 0 1rem 80px; }
+      .tools-grid { grid-template-columns: 1fr; }
       footer { flex-direction: column; align-items: flex-start; }
       .footer-copy { text-align: left; }
     }
@@ -374,59 +444,69 @@
       </div>
       <span class="nav-name">DJI <span>QBM</span></span>
     </a>
-    <div style="display:flex;align-items:center;gap:10px">
-      <span class="nav-badge">Operator Hub</span>
-      <a href="/storedash" class="nav-cta">StoreDash →</a>
+    <div class="nav-right">
+      <span class="nav-pill">Operator Hub</span>
+      <a href="/storedash" class="nav-btn">
+        StoreDash
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
     </div>
   </nav>
 
-  <!-- MAIN -->
-  <div class="page">
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">DJI Queensbay Mall</div>
+    <div class="hero-greeting" id="greeting">Good morning, team.</div>
+    <h1 class="hero-title">Operator Hub</h1>
+    <p class="hero-sub">All your internal tools, in one place. Built for the QBM team.</p>
+    <div class="hero-clock" id="clock"></div>
+  </div>
 
-    <!-- Tools -->
-    <div class="section-header">
-      <div class="section-label">Operator Tools</div>
-      <div class="section-title">Everything in one place.</div>
-    </div>
+  <!-- TOOLS -->
+  <div class="tools-section">
+    <div class="tools-label">Active Tools</div>
 
-    <div class="tools-list">
+    <div class="tools-grid">
 
-      <a href="/storedash" class="tool-row">
-        <div class="tool-icon">📊</div>
-        <div class="tool-info">
-          <div class="tool-name">StoreDash</div>
-          <div class="tool-desc">Sales analytics, staff leaderboard, PDF report &amp; CSV export</div>
-        </div>
-        <div class="tool-right">
+      <a href="/storedash" class="tool-card">
+        <div class="tool-card-top">
+          <div class="tool-card-icon">📊</div>
           <span class="badge badge-live">● Live</span>
-          <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M5 12h14M12 5l7 7-7 7"/>
-          </svg>
+        </div>
+        <div class="tool-card-name">StoreDash</div>
+        <div class="tool-card-desc">Sales analytics, staff performance leaderboard, PDF reports and CSV export — all your store data at a glance.</div>
+        <div class="tool-card-footer">
+          <div class="tool-launch-btn">
+            Open StoreDash
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
         </div>
       </a>
 
-      <a href="/workshop/" class="tool-row">
-        <div class="tool-icon">🎓</div>
-        <div class="tool-info">
-          <div class="tool-name">Workshop Hub</div>
-          <div class="tool-desc">Create &amp; manage DJI workshop registrations, auto-generate Google Forms from poster</div>
-        </div>
-        <div class="tool-right">
+      <a href="/workshop/" class="tool-card">
+        <div class="tool-card-top">
+          <div class="tool-card-icon">🎓</div>
           <span class="badge badge-new">★ New</span>
-          <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M5 12h14M12 5l7 7-7 7"/>
-          </svg>
+        </div>
+        <div class="tool-card-name">Workshop Hub</div>
+        <div class="tool-card-desc">Create and manage DJI workshop registrations. Auto-generate Google Forms from your event poster with AI.</div>
+        <div class="tool-card-footer">
+          <div class="tool-launch-btn">
+            Open Workshop Hub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
         </div>
       </a>
-
-      <div class="coming-row">
-        <div class="coming-dot"></div>
-        <div class="coming-text">More tools coming soon — Inventory Tracker, Promo Calendar &amp; more</div>
-        <span class="badge badge-soon" style="margin-left:auto">Coming Soon</span>
-      </div>
 
     </div>
 
+    <div class="coming-strip">
+      <div class="coming-dots">
+        <span></span><span></span><span></span>
+      </div>
+      <div class="coming-text">More tools on the way — Inventory Tracker, Promo Calendar &amp; more</div>
+      <span class="badge badge-soon">Coming Soon</span>
+    </div>
   </div>
 
   <!-- FOOTER -->
@@ -447,6 +527,27 @@
       <span>QBM Operator Hub · Internal use only</span>
     </div>
   </footer>
+
+  <script>
+    // Greeting based on hour
+    const h = new Date().getHours();
+    document.getElementById('greeting').textContent =
+      h < 12 ? 'Good morning, team.' :
+      h < 17 ? 'Good afternoon, team.' :
+               'Good evening, team.';
+
+    // Live clock
+    function tick() {
+      const now = new Date();
+      const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const time = now.toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+      document.getElementById('clock').textContent =
+        `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()} · ${time}`;
+    }
+    tick();
+    setInterval(tick, 1000);
+  </script>
 
 </body>
 </html>

@@ -8,5 +8,5 @@
 
 [[redirects]]
   from = "/storedash"
-  to = "https://kianc1220.github.io/store-dashboard/"
+  to = "/storedash/"
   status = 301
