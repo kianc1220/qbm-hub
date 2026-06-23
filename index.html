@@ -7,7 +7,7 @@
   <meta name="description" content="Internal tools for DJI Queensbay Mall operators — sales analytics and workshop management." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -15,7 +15,6 @@
       --blue: #2563eb;
       --blue-dim: rgba(37,99,235,0.12);
       --blue-glow: rgba(37,99,235,0.28);
-      --blue-border: rgba(37,99,235,0.3);
       --bg: #080c14;
       --surface: #0f1523;
       --surface2: #161d2e;
@@ -23,17 +22,13 @@
       --border-hover: rgba(255,255,255,0.15);
       --text: #ffffff;
       --muted: #7a8499;
-      --subtle: #2a3045;
     }
 
-    html { scroll-behavior: smooth; }
-
     body {
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      font-family: 'Inter', system-ui, sans-serif;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
-      overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
     }
 
@@ -58,8 +53,8 @@
       align-items: center;
       justify-content: space-between;
       padding: 0 2rem;
-      height: 60px;
-      background: rgba(8,12,20,0.88);
+      height: 58px;
+      background: rgba(8,12,20,0.92);
       backdrop-filter: blur(20px);
       border-bottom: 1px solid var(--border);
     }
@@ -72,26 +67,25 @@
     }
 
     .nav-logo {
-      width: 32px;
-      height: 32px;
+      width: 30px;
+      height: 30px;
       background: var(--blue);
-      border-radius: 8px;
+      border-radius: 7px;
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
     }
 
-    .nav-logo svg { width: 20px; height: 20px; fill: #fff; }
+    .nav-logo svg { width: 18px; height: 18px; fill: #fff; }
 
     .nav-name {
       font-size: 14px;
       font-weight: 700;
       color: var(--text);
-      letter-spacing: -0.01em;
     }
 
-    .nav-name span { color: var(--blue); }
+    .nav-name span { color: #60a5fa; }
 
     .nav-badge {
       font-size: 10px;
@@ -105,202 +99,31 @@
       text-transform: uppercase;
     }
 
-    .nav-right {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .nav-right a {
-      font-size: 13px;
-      color: var(--muted);
-      text-decoration: none;
-      padding: 6px 12px;
-      border-radius: 8px;
-      transition: color 0.2s, background 0.2s;
-    }
-
-    .nav-right a:hover { color: var(--text); background: var(--surface2); }
-
     .nav-cta {
-      background: var(--blue) !important;
-      color: #fff !important;
-      font-weight: 600 !important;
-    }
-    .nav-cta:hover { opacity: .88; background: var(--blue) !important; }
-
-    /* ── HERO ── */
-    .hero {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      padding: 90px 1.5rem 72px;
-      overflow: hidden;
-    }
-
-    .hero::before {
-      content: '';
-      position: absolute;
-      top: -60px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 700px;
-      height: 400px;
-      background: radial-gradient(ellipse at center, rgba(37,99,235,0.14) 0%, transparent 68%);
-      pointer-events: none;
-    }
-
-    .hero-eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--blue-dim);
-      border: 1px solid rgba(37,99,235,0.25);
-      border-radius: 20px;
-      padding: 5px 14px;
-      font-size: 11px;
+      font-size: 13px;
       font-weight: 600;
-      color: #60a5fa;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-bottom: 28px;
-    }
-
-    .hero-eyebrow::before {
-      content: '';
-      width: 6px;
-      height: 6px;
-      background: var(--blue);
-      border-radius: 50%;
-      animation: pulse 2s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(0.75); }
-    }
-
-    .hero h1 {
-      font-size: clamp(34px, 5.5vw, 66px);
-      font-weight: 900;
-      line-height: 1.05;
-      letter-spacing: -0.03em;
-      color: var(--text);
-      max-width: 760px;
-      margin-bottom: 18px;
-    }
-
-    .hero h1 span { color: #60a5fa; }
-
-    .hero-sub {
-      font-size: clamp(13px, 1.8vw, 16px);
-      color: var(--muted);
-      max-width: 480px;
-      line-height: 1.65;
-      margin-bottom: 40px;
-      font-weight: 400;
-    }
-
-    .hero-actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    .btn-primary {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--blue);
       color: #fff;
+      background: var(--blue);
       text-decoration: none;
-      font-size: 14px;
-      font-weight: 700;
-      padding: 11px 26px;
-      border-radius: 10px;
-      transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+      padding: 7px 16px;
+      border-radius: 8px;
+      transition: opacity 0.18s;
     }
 
-    .btn-primary:hover {
-      opacity: .88;
-      transform: translateY(-1px);
-      box-shadow: 0 8px 28px var(--blue-glow);
-    }
+    .nav-cta:hover { opacity: .85; }
 
-    .btn-secondary {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--surface2);
-      color: var(--text);
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: 600;
-      padding: 11px 26px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      transition: transform 0.2s, border-color 0.2s;
-    }
-
-    .btn-secondary:hover {
-      border-color: var(--border-hover);
-      transform: translateY(-1px);
-    }
-
-    /* ── STATS STRIP ── */
-    .stats {
+    /* ── MAIN WRAPPER ── */
+    .page {
       position: relative;
       z-index: 1;
-      display: flex;
-      justify-content: center;
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      background: var(--surface);
-    }
-
-    .stat {
-      flex: 1;
-      max-width: 200px;
-      padding: 24px 20px;
-      text-align: center;
-      border-right: 1px solid var(--border);
-    }
-
-    .stat:last-child { border-right: none; }
-
-    .stat-value {
-      font-size: 24px;
-      font-weight: 800;
-      color: var(--text);
-      letter-spacing: -0.02em;
-      margin-bottom: 3px;
-    }
-
-    .stat-value span { color: #60a5fa; }
-
-    .stat-label {
-      font-size: 10px;
-      font-weight: 500;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-    }
-
-    /* ── TOOLS SECTION ── */
-    .section {
-      position: relative;
-      z-index: 1;
-      max-width: 860px;
+      max-width: 780px;
       margin: 0 auto;
-      padding: 72px 1.5rem 80px;
+      padding: 48px 1.5rem 80px;
     }
 
+    /* ── SECTION HEADER ── */
     .section-header {
-      margin-bottom: 36px;
+      margin-bottom: 24px;
     }
 
     .section-label {
@@ -309,20 +132,13 @@
       color: #60a5fa;
       text-transform: uppercase;
       letter-spacing: 0.1em;
-      margin-bottom: 8px;
-    }
-
-    .section-title {
-      font-size: clamp(22px, 3vw, 32px);
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      color: var(--text);
       margin-bottom: 6px;
     }
 
-    .section-sub {
-      font-size: 14px;
-      color: var(--muted);
+    .section-title {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
     }
 
     /* ── TOOLS LIST ── */
@@ -333,62 +149,58 @@
       border-radius: 16px;
       overflow: hidden;
       background: var(--surface);
+      margin-bottom: 40px;
     }
 
     .tool-row {
       display: flex;
       align-items: center;
       gap: 16px;
-      padding: 20px 24px;
+      padding: 18px 22px;
       text-decoration: none;
       color: var(--text);
       border-bottom: 1px solid var(--border);
-      transition: background 0.18s;
-      cursor: pointer;
+      transition: background 0.15s;
     }
 
     .tool-row:last-child { border-bottom: none; }
-
     .tool-row:not(.disabled):hover { background: var(--surface2); }
+    .tool-row.disabled { cursor: default; opacity: 0.45; }
 
-    .tool-row.disabled { cursor: default; opacity: 0.5; }
-
-    .tool-row-icon {
-      width: 42px;
-      height: 42px;
-      border-radius: 11px;
+    .tool-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
+      font-size: 19px;
       flex-shrink: 0;
       background: var(--surface2);
       border: 1px solid var(--border);
     }
 
-    .tool-row-info {
-      flex: 1;
-      min-width: 0;
-    }
+    .tool-info { flex: 1; min-width: 0; }
 
-    .tool-row-name {
-      font-size: 15px;
+    .tool-name {
+      font-size: 14px;
       font-weight: 700;
       margin-bottom: 2px;
     }
 
-    .tool-row-desc {
+    .tool-desc {
       font-size: 12px;
       color: var(--muted);
     }
 
-    .tool-row-right {
+    .tool-right {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       flex-shrink: 0;
     }
 
+    /* badges */
     .badge {
       font-size: 10px;
       font-weight: 700;
@@ -405,89 +217,71 @@
       border: 1px solid rgba(5,150,105,0.25);
     }
 
-    .badge-soon {
-      background: rgba(245,158,11,0.12);
-      color: #f59e0b;
-      border: 1px solid rgba(245,158,11,0.22);
-    }
-
     .badge-new {
       background: rgba(37,99,235,0.15);
       color: #60a5fa;
       border: 1px solid rgba(37,99,235,0.28);
     }
 
-    .tool-arrow-icon {
-      width: 18px;
-      height: 18px;
-      color: var(--muted);
-      flex-shrink: 0;
-      transition: transform 0.2s, color 0.2s;
+    .badge-soon {
+      background: rgba(245,158,11,0.1);
+      color: #f59e0b;
+      border: 1px solid rgba(245,158,11,0.2);
     }
 
-    .tool-row:not(.disabled):hover .tool-arrow-icon {
+    .arrow-icon {
+      width: 16px;
+      height: 16px;
+      color: var(--muted);
+      transition: transform 0.18s, color 0.18s;
+    }
+
+    .tool-row:not(.disabled):hover .arrow-icon {
       transform: translateX(3px);
       color: #60a5fa;
     }
 
-    /* ── DIVIDER ── */
-    .divider {
-      position: relative;
-      z-index: 1;
-      height: 1px;
-      background: var(--border);
-      margin: 0 1.5rem;
-    }
-
-    /* ── ABOUT SECTION ── */
-    .about-section {
-      position: relative;
-      z-index: 1;
-      max-width: 860px;
-      margin: 0 auto;
-      padding: 64px 1.5rem 72px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 48px;
+    /* coming soon placeholder row */
+    .coming-row {
+      display: flex;
       align-items: center;
+      gap: 10px;
+      padding: 14px 22px;
+      opacity: 0.4;
     }
 
-    @media (max-width: 700px) {
-      .about-section { grid-template-columns: 1fr; gap: 28px; }
+    .coming-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--muted);
+      flex-shrink: 0;
     }
 
-    .about-text .label {
-      font-size: 11px;
-      font-weight: 700;
-      color: #60a5fa;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      margin-bottom: 10px;
-    }
-
-    .about-text h2 {
-      font-size: clamp(20px, 2.6vw, 28px);
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      margin-bottom: 12px;
-      line-height: 1.25;
-    }
-
-    .about-text p {
-      font-size: 13.5px;
+    .coming-text {
+      font-size: 12px;
       color: var(--muted);
-      line-height: 1.7;
-      margin-bottom: 10px;
+      font-style: italic;
     }
 
+    /* ── ABOUT CARD ── */
     .about-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 16px;
-      padding: 24px;
+      padding: 24px 22px;
       display: flex;
       flex-direction: column;
       gap: 14px;
+    }
+
+    .about-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 2px;
     }
 
     .about-row {
@@ -497,15 +291,15 @@
     }
 
     .about-icon {
-      width: 34px;
-      height: 34px;
-      border-radius: 9px;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
       background: var(--surface2);
       border: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 15px;
+      font-size: 14px;
       flex-shrink: 0;
     }
 
@@ -519,7 +313,6 @@
     .about-row-text span {
       font-size: 11.5px;
       color: var(--muted);
-      line-height: 1.5;
     }
 
     /* ── FOOTER ── */
@@ -528,67 +321,43 @@
       z-index: 1;
       border-top: 1px solid var(--border);
       background: var(--surface);
-    }
-
-    .footer-inner {
-      max-width: 860px;
-      margin: 0 auto;
-      padding: 32px 1.5rem;
+      padding: 24px 2rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
       flex-wrap: wrap;
-      gap: 14px;
+      gap: 12px;
     }
 
     .footer-brand {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 9px;
     }
 
     .footer-logo {
-      width: 28px;
-      height: 28px;
+      width: 26px;
+      height: 26px;
       background: var(--blue);
-      border-radius: 7px;
+      border-radius: 6px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
-    .footer-logo svg { width: 17px; height: 17px; fill: #fff; }
+    .footer-logo svg { width: 16px; height: 16px; fill: #fff; }
 
-    .footer-brand-text strong {
-      display: block;
-      font-size: 12px;
-      font-weight: 700;
-    }
+    .footer-text strong { display: block; font-size: 12px; font-weight: 700; }
+    .footer-text span { font-size: 11px; color: var(--muted); }
 
-    .footer-brand-text span {
-      font-size: 11px;
-      color: var(--muted);
-    }
-
-    .footer-copy {
-      font-size: 11px;
-      color: var(--muted);
-      text-align: right;
-    }
-
+    .footer-copy { font-size: 11px; color: var(--muted); text-align: right; }
     .footer-copy strong { color: var(--text); font-weight: 600; }
 
-    /* ── RESPONSIVE ── */
-    @media (max-width: 640px) {
+    @media (max-width: 600px) {
       nav { padding: 0 1rem; }
       .nav-badge { display: none; }
-      .nav-right a:not(.nav-cta) { display: none; }
-      .hero { padding: 64px 1rem 56px; }
-      .stats { flex-wrap: wrap; }
-      .stat { min-width: 120px; }
-      .section { padding: 52px 1rem 60px; }
-      .tool-row { padding: 16px 18px; }
-      .footer-inner { flex-direction: column; align-items: flex-start; }
+      .page { padding: 32px 1rem 64px; }
+      footer { flex-direction: column; align-items: flex-start; }
       .footer-copy { text-align: left; }
     }
   </style>
@@ -607,148 +376,60 @@
     </a>
     <div style="display:flex;align-items:center;gap:10px">
       <span class="nav-badge">Operator Hub</span>
-      <div class="nav-right">
-        <a href="#tools">Tools</a>
-        <a href="#about">About</a>
-        <a href="https://kianc1220.github.io/store-dashboard/" target="_blank" class="nav-cta">StoreDash →</a>
-      </div>
+      <a href="/storedash" class="nav-cta">StoreDash →</a>
     </div>
   </nav>
 
-  <!-- HERO -->
-  <section class="hero">
-    <div class="hero-eyebrow">DJI Queensbay Mall · Operator Tools</div>
-    <h1>Your store.<br /><span>Smarter</span> every day.</h1>
-    <p class="hero-sub">
-      Internal tools built for the QBM team — analyse sales, manage workshops,
-      and stay on top of your numbers.
-    </p>
-    <div class="hero-actions">
-      <a href="https://kianc1220.github.io/store-dashboard/" target="_blank" class="btn-primary">
-        📊 Open StoreDash
-      </a>
-      <a href="#tools" class="btn-secondary">
-        View all tools ↓
-      </a>
-    </div>
-  </section>
+  <!-- MAIN -->
+  <div class="page">
 
-  <!-- STATS STRIP -->
-  <div class="stats">
-    <div class="stat">
-      <div class="stat-value"><span>2</span></div>
-      <div class="stat-label">Live Tools</div>
-    </div>
-    <div class="stat">
-      <div class="stat-value">QBM</div>
-      <div class="stat-label">Queensbay Mall</div>
-    </div>
-    <div class="stat">
-      <div class="stat-value">DJI</div>
-      <div class="stat-label">Authorised Reseller</div>
-    </div>
-    <div class="stat">
-      <div class="stat-value"><span>MY</span></div>
-      <div class="stat-label">Penang, Malaysia</div>
-    </div>
-  </div>
-
-  <!-- TOOLS -->
-  <section class="section" id="tools">
+    <!-- Tools -->
     <div class="section-header">
       <div class="section-label">Operator Tools</div>
       <div class="section-title">Everything in one place.</div>
-      <div class="section-sub">All your QBM tools, right here. Open and go.</div>
     </div>
 
     <div class="tools-list">
 
-      <!-- StoreDash -->
-      <a href="https://kianc1220.github.io/store-dashboard/" target="_blank" class="tool-row">
-        <div class="tool-row-icon">📊</div>
-        <div class="tool-row-info">
-          <div class="tool-row-name">StoreDash</div>
-          <div class="tool-row-desc">Sales analytics, staff leaderboard, PDF report &amp; CSV export</div>
+      <a href="/storedash" class="tool-row">
+        <div class="tool-icon">📊</div>
+        <div class="tool-info">
+          <div class="tool-name">StoreDash</div>
+          <div class="tool-desc">Sales analytics, staff leaderboard, PDF report &amp; CSV export</div>
         </div>
-        <div class="tool-row-right">
+        <div class="tool-right">
           <span class="badge badge-live">● Live</span>
-          <svg class="tool-arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M5 12h14M12 5l7 7-7 7"/>
           </svg>
         </div>
       </a>
 
-      <!-- Workshop Hub -->
       <a href="/workshop/" class="tool-row">
-        <div class="tool-row-icon">🎓</div>
-        <div class="tool-row-info">
-          <div class="tool-row-name">Workshop Hub</div>
-          <div class="tool-row-desc">Create &amp; manage DJI workshop registrations, auto-generate Google Forms from poster</div>
+        <div class="tool-icon">🎓</div>
+        <div class="tool-info">
+          <div class="tool-name">Workshop Hub</div>
+          <div class="tool-desc">Create &amp; manage DJI workshop registrations, auto-generate Google Forms from poster</div>
         </div>
-        <div class="tool-row-right">
+        <div class="tool-right">
           <span class="badge badge-new">★ New</span>
-          <svg class="tool-arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M5 12h14M12 5l7 7-7 7"/>
           </svg>
         </div>
       </a>
 
-      <!-- Coming Soon: Inventory Tracker -->
-      <div class="tool-row disabled">
-        <div class="tool-row-icon">📦</div>
-        <div class="tool-row-info">
-          <div class="tool-row-name">Inventory Tracker</div>
-          <div class="tool-row-desc">Track stock levels, low-stock alerts, and product movement</div>
-        </div>
-        <div class="tool-row-right">
-          <span class="badge badge-soon">Coming Soon</span>
-        </div>
-      </div>
-
-      <!-- Coming Soon: Promo Calendar -->
-      <div class="tool-row disabled">
-        <div class="tool-row-icon">📅</div>
-        <div class="tool-row-info">
-          <div class="tool-row-name">Promo Calendar</div>
-          <div class="tool-row-desc">Plan upcoming DJI campaigns, bundles &amp; in-store promotions</div>
-        </div>
-        <div class="tool-row-right">
-          <span class="badge badge-soon">Coming Soon</span>
-        </div>
-      </div>
-
-      <!-- Coming Soon: Customer Insights -->
-      <div class="tool-row disabled">
-        <div class="tool-row-icon">🧑‍🤝‍🧑</div>
-        <div class="tool-row-info">
-          <div class="tool-row-name">Customer Insights</div>
-          <div class="tool-row-desc">Repeat customer tracking, purchase patterns &amp; loyalty data</div>
-        </div>
-        <div class="tool-row-right">
-          <span class="badge badge-soon">Coming Soon</span>
-        </div>
+      <div class="coming-row">
+        <div class="coming-dot"></div>
+        <div class="coming-text">More tools coming soon — Inventory Tracker, Promo Calendar &amp; more</div>
+        <span class="badge badge-soon" style="margin-left:auto">Coming Soon</span>
       </div>
 
     </div>
-  </section>
 
-  <div class="divider"></div>
-
-  <!-- ABOUT -->
-  <div class="about-section" id="about">
-    <div class="about-text">
-      <div class="label">About QBM Hub</div>
-      <h2>Built for the QBM team, by the team.</h2>
-      <p>
-        QBM Operator Hub is an internal toolset designed to help the DJI Queensbay
-        team work faster and smarter — from tracking daily sales to running customer workshops.
-      </p>
-      <p>
-        All tools are lightweight, private, and built with your specific workflow in mind.
-        No subscriptions. No complex setup.
-      </p>
-    </div>
+    <!-- About -->
     <div class="about-card">
+      <div class="about-title">About QBM Hub</div>
       <div class="about-row">
         <div class="about-icon">🏪</div>
         <div class="about-row-text">
@@ -770,36 +451,26 @@
           <span>Open any tool directly — just click and go</span>
         </div>
       </div>
-      <div class="about-row">
-        <div class="about-icon">📱</div>
-        <div class="about-row-text">
-          <strong>Works on All Devices</strong>
-          <span>Mobile, tablet, and desktop — fully responsive</span>
-        </div>
-      </div>
     </div>
-  </div>
 
-  <div class="divider"></div>
+  </div>
 
   <!-- FOOTER -->
   <footer>
-    <div class="footer-inner">
-      <div class="footer-brand">
-        <div class="footer-logo">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M3 8h3.5L8 6H5L3 8zm13-2l1.5 2H21l-2-2h-3zM8 18l-1.5-2H3l2 2h3zm8 0h3l2-2h-3.5L16 18zM12 9a3 3 0 100 6 3 3 0 000-6z"/>
-          </svg>
-        </div>
-        <div class="footer-brand-text">
-          <strong>DJI Queensbay Mall</strong>
-          <span>Azure Telecommunication Sdn Bhd (1312920-W)</span>
-        </div>
+    <div class="footer-brand">
+      <div class="footer-logo">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 8h3.5L8 6H5L3 8zm13-2l1.5 2H21l-2-2h-3zM8 18l-1.5-2H3l2 2h3zm8 0h3l2-2h-3.5L16 18zM12 9a3 3 0 100 6 3 3 0 000-6z"/>
+        </svg>
       </div>
-      <div class="footer-copy">
-        <strong>© 2026 DJI Queensbay · All rights reserved</strong><br />
-        <span>QBM Operator Hub · Internal use only</span>
+      <div class="footer-text">
+        <strong>DJI Queensbay Mall</strong>
+        <span>Azure Telecommunication Sdn Bhd (1312920-W)</span>
       </div>
+    </div>
+    <div class="footer-copy">
+      <strong>© 2026 DJI Queensbay · All rights reserved</strong><br/>
+      <span>QBM Operator Hub · Internal use only</span>
     </div>
   </footer>
 
