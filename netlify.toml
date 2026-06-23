@@ -1,0 +1,12 @@
+[functions]
+  directory = "netlify/functions"
+
+[[redirects]]
+  from = "/workshop"
+  to = "/workshop/"
+  status = 301
+
+[[redirects]]
+  from = "/storedash"
+  to = "https://kianc1220.github.io/store-dashboard/"
+  status = 301

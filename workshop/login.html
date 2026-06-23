@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DJI Queensbay – Staff Login</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 60%, #16213e 100%);
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 380px;
+      padding: 36px 32px 32px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.4);
+      text-align: center;
+    }
+
+    .logo {
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 6px;
+      color: #e6a014;
+      margin-bottom: 4px;
+    }
+
+    .store-name {
+      font-size: 11px;
+      color: #888;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 28px;
+    }
+
+    .lock-icon {
+      font-size: 40px;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      font-size: 20px;
+      font-weight: 800;
+      color: #1a1a2e;
+      margin-bottom: 6px;
+    }
+
+    p.sub {
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 28px;
+    }
+
+    .form-group {
+      position: relative;
+      margin-bottom: 16px;
+      text-align: left;
+    }
+
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #555;
+      margin-bottom: 8px;
+    }
+
+    input[type="password"], input[type="text"] {
+      width: 100%;
+      padding: 13px 44px 13px 14px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 16px;
+      color: #1a1a2e;
+      background: #fafafa;
+      -webkit-appearance: none;
+      transition: border-color .2s, background .2s;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #e6a014;
+      background: #fff;
+    }
+
+    .toggle-pw {
+      position: absolute;
+      right: 12px;
+      bottom: 13px;
+      cursor: pointer;
+      font-size: 18px;
+      user-select: none;
+      color: #aaa;
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: 14px;
+      background: #e6a014;
+      color: #1a1a2e;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      margin-top: 4px;
+      transition: opacity .15s;
+      letter-spacing: .3px;
+    }
+
+    .btn-login:hover { opacity: .88; }
+    .btn-login:active { opacity: .75; }
+
+    .error-msg {
+      background: #fdecea;
+      color: #c62828;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 14px;
+      display: none;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid #eee;
+      margin: 24px 0 16px;
+    }
+
+    .back-link {
+      font-size: 12px;
+      color: #aaa;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .back-link:hover { color: #555; }
+
+    .footer-note {
+      font-size: 11px;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo">D J I</div>
+  <div class="store-name">Queensbay</div>
+
+  <div class="lock-icon">🔒</div>
+  <h1>Staff Access Only</h1>
+  <p class="sub">Enter the workshop management password to continue.</p>
+
+  <div class="error-msg" id="errorMsg">Incorrect password. Please try again.</div>
+
+  <div class="form-group">
+    <label for="pwField">Password</label>
+    <input type="password" id="pwField" placeholder="Enter password" autocomplete="current-password" />
+    <span class="toggle-pw" id="togglePw" title="Show/hide password">👁</span>
+  </div>
+
+  <button class="btn-login" id="loginBtn">Unlock →</button>
+
+  <hr class="divider" />
+  <a href="/" class="back-link">← Back to QBM Hub</a>
+  <p class="footer-note" style="margin-top:8px;">DJI Authorised Store, Queensbay &nbsp;·&nbsp; Internal use only</p>
+</div>
+
+<script>
+(function () {
+  if (localStorage.getItem('dji_auth')) {
+    window.location.replace('/workshop/');
+    return;
+  }
+
+  const PASSWORD = 'djiQB2026';
+
+  const field   = document.getElementById('pwField');
+  const btn     = document.getElementById('loginBtn');
+  const errMsg  = document.getElementById('errorMsg');
+  const toggle  = document.getElementById('togglePw');
+
+  toggle.addEventListener('click', function () {
+    const isHidden = field.type === 'password';
+    field.type = isHidden ? 'text' : 'password';
+    toggle.textContent = isHidden ? '🙈' : '👁';
+  });
+
+  function attempt() {
+    if (field.value === PASSWORD) {
+      localStorage.setItem('dji_auth', '1');
+      window.location.replace('/workshop/');
+    } else {
+      errMsg.style.display = 'block';
+      field.value = '';
+      field.focus();
+      field.style.borderColor = '#c62828';
+      setTimeout(() => { field.style.borderColor = ''; }, 1000);
+    }
+  }
+
+  btn.addEventListener('click', attempt);
+  field.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') attempt();
+    errMsg.style.display = 'none';
+  });
+
+  field.focus();
+})();
+</script>
+</body>
+</html>

@@ -12,17 +12,18 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --red: #e0002a;
-      --red-dim: rgba(224,0,42,0.12);
-      --red-glow: rgba(224,0,42,0.3);
-      --bg: #080808;
-      --surface: #111111;
-      --surface2: #1a1a1a;
-      --border: rgba(255,255,255,0.08);
-      --border-hover: rgba(255,255,255,0.18);
+      --blue: #2563eb;
+      --blue-dim: rgba(37,99,235,0.12);
+      --blue-glow: rgba(37,99,235,0.28);
+      --blue-border: rgba(37,99,235,0.3);
+      --bg: #080c14;
+      --surface: #0f1523;
+      --surface2: #161d2e;
+      --border: rgba(255,255,255,0.07);
+      --border-hover: rgba(255,255,255,0.15);
       --text: #ffffff;
-      --muted: #8a8a8a;
-      --subtle: #3a3a3a;
+      --muted: #7a8499;
+      --subtle: #2a3045;
     }
 
     html { scroll-behavior: smooth; }
@@ -36,14 +37,13 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ── Background grid pattern ── */
     body::before {
       content: '';
       position: fixed;
       inset: 0;
       background-image:
-        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+        linear-gradient(rgba(37,99,235,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(37,99,235,0.03) 1px, transparent 1px);
       background-size: 60px 60px;
       pointer-events: none;
       z-index: 0;
@@ -58,8 +58,8 @@
       align-items: center;
       justify-content: space-between;
       padding: 0 2rem;
-      height: 64px;
-      background: rgba(8,8,8,0.85);
+      height: 60px;
+      background: rgba(8,12,20,0.88);
       backdrop-filter: blur(20px);
       border-bottom: 1px solid var(--border);
     }
@@ -67,14 +67,14 @@
     .nav-brand {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       text-decoration: none;
     }
 
     .nav-logo {
-      width: 36px;
-      height: 36px;
-      background: var(--red);
+      width: 32px;
+      height: 32px;
+      background: var(--blue);
       border-radius: 8px;
       display: flex;
       align-items: center;
@@ -82,18 +82,16 @@
       flex-shrink: 0;
     }
 
-    .nav-logo svg { width: 22px; height: 22px; fill: #fff; }
+    .nav-logo svg { width: 20px; height: 20px; fill: #fff; }
 
     .nav-name {
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 700;
       color: var(--text);
       letter-spacing: -0.01em;
     }
 
-    .nav-name span {
-      color: var(--red);
-    }
+    .nav-name span { color: var(--blue); }
 
     .nav-badge {
       font-size: 10px;
@@ -110,19 +108,26 @@
     .nav-right {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
 
     .nav-right a {
       font-size: 13px;
       color: var(--muted);
       text-decoration: none;
-      padding: 6px 14px;
+      padding: 6px 12px;
       border-radius: 8px;
       transition: color 0.2s, background 0.2s;
     }
 
     .nav-right a:hover { color: var(--text); background: var(--surface2); }
+
+    .nav-cta {
+      background: var(--blue) !important;
+      color: #fff !important;
+      font-weight: 600 !important;
+    }
+    .nav-cta:hover { opacity: .88; background: var(--blue) !important; }
 
     /* ── HERO ── */
     .hero {
@@ -132,19 +137,19 @@
       flex-direction: column;
       align-items: center;
       text-align: center;
-      padding: 100px 1.5rem 80px;
+      padding: 90px 1.5rem 72px;
       overflow: hidden;
     }
 
     .hero::before {
       content: '';
       position: absolute;
-      top: -80px;
+      top: -60px;
       left: 50%;
       transform: translateX(-50%);
-      width: 600px;
+      width: 700px;
       height: 400px;
-      background: radial-gradient(ellipse at center, rgba(224,0,42,0.15) 0%, transparent 70%);
+      background: radial-gradient(ellipse at center, rgba(37,99,235,0.14) 0%, transparent 68%);
       pointer-events: none;
     }
 
@@ -152,13 +157,13 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: var(--red-dim);
-      border: 1px solid rgba(224,0,42,0.25);
+      background: var(--blue-dim);
+      border: 1px solid rgba(37,99,235,0.25);
       border-radius: 20px;
       padding: 5px 14px;
       font-size: 11px;
       font-weight: 600;
-      color: var(--red);
+      color: #60a5fa;
       text-transform: uppercase;
       letter-spacing: 0.08em;
       margin-bottom: 28px;
@@ -168,40 +173,40 @@
       content: '';
       width: 6px;
       height: 6px;
-      background: var(--red);
+      background: var(--blue);
       border-radius: 50%;
       animation: pulse 2s ease-in-out infinite;
     }
 
     @keyframes pulse {
       0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.5; transform: scale(0.8); }
+      50% { opacity: 0.4; transform: scale(0.75); }
     }
 
     .hero h1 {
-      font-size: clamp(36px, 6vw, 72px);
+      font-size: clamp(34px, 5.5vw, 66px);
       font-weight: 900;
       line-height: 1.05;
       letter-spacing: -0.03em;
       color: var(--text);
-      max-width: 800px;
-      margin-bottom: 20px;
+      max-width: 760px;
+      margin-bottom: 18px;
     }
 
-    .hero h1 span { color: var(--red); }
+    .hero h1 span { color: #60a5fa; }
 
     .hero-sub {
-      font-size: clamp(14px, 2vw, 17px);
+      font-size: clamp(13px, 1.8vw, 16px);
       color: var(--muted);
-      max-width: 520px;
-      line-height: 1.6;
-      margin-bottom: 44px;
+      max-width: 480px;
+      line-height: 1.65;
+      margin-bottom: 40px;
       font-weight: 400;
     }
 
     .hero-actions {
       display: flex;
-      gap: 12px;
+      gap: 10px;
       flex-wrap: wrap;
       justify-content: center;
     }
@@ -210,21 +215,20 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: var(--red);
+      background: var(--blue);
       color: #fff;
       text-decoration: none;
       font-size: 14px;
       font-weight: 700;
-      padding: 12px 28px;
+      padding: 11px 26px;
       border-radius: 10px;
-      transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
-      letter-spacing: 0.01em;
+      transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
     }
 
     .btn-primary:hover {
-      background: #c5001f;
+      opacity: .88;
       transform: translateY(-1px);
-      box-shadow: 0 8px 28px var(--red-glow);
+      box-shadow: 0 8px 28px var(--blue-glow);
     }
 
     .btn-secondary {
@@ -236,15 +240,14 @@
       text-decoration: none;
       font-size: 14px;
       font-weight: 600;
-      padding: 12px 28px;
+      padding: 11px 26px;
       border-radius: 10px;
       border: 1px solid var(--border);
-      transition: transform 0.2s, border-color 0.2s, background 0.2s;
+      transition: transform 0.2s, border-color 0.2s;
     }
 
     .btn-secondary:hover {
       border-color: var(--border-hover);
-      background: #222;
       transform: translateY(-1px);
     }
 
@@ -254,17 +257,15 @@
       z-index: 1;
       display: flex;
       justify-content: center;
-      gap: 0;
       border-top: 1px solid var(--border);
       border-bottom: 1px solid var(--border);
       background: var(--surface);
-      overflow: hidden;
     }
 
     .stat {
       flex: 1;
-      max-width: 220px;
-      padding: 28px 24px;
+      max-width: 200px;
+      padding: 24px 20px;
       text-align: center;
       border-right: 1px solid var(--border);
     }
@@ -272,17 +273,17 @@
     .stat:last-child { border-right: none; }
 
     .stat-value {
-      font-size: 28px;
+      font-size: 24px;
       font-weight: 800;
       color: var(--text);
       letter-spacing: -0.02em;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
 
-    .stat-value span { color: var(--red); }
+    .stat-value span { color: #60a5fa; }
 
     .stat-label {
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 500;
       color: var(--muted);
       text-transform: uppercase;
@@ -293,191 +294,140 @@
     .section {
       position: relative;
       z-index: 1;
-      max-width: 1100px;
+      max-width: 860px;
       margin: 0 auto;
-      padding: 80px 1.5rem;
+      padding: 72px 1.5rem 80px;
     }
 
     .section-header {
-      margin-bottom: 48px;
+      margin-bottom: 36px;
     }
 
     .section-label {
       font-size: 11px;
       font-weight: 700;
-      color: var(--red);
+      color: #60a5fa;
       text-transform: uppercase;
       letter-spacing: 0.1em;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
     .section-title {
-      font-size: clamp(24px, 3.5vw, 38px);
+      font-size: clamp(22px, 3vw, 32px);
       font-weight: 800;
       letter-spacing: -0.02em;
-      color: var(--text);
-      margin-bottom: 10px;
-    }
-
-    .section-sub {
-      font-size: 15px;
-      color: var(--muted);
-      font-weight: 400;
-    }
-
-    /* ── TOOL CARDS ── */
-    .tools-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px;
-    }
-
-    .tool-card {
-      position: relative;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 32px;
-      text-decoration: none;
-      color: var(--text);
-      overflow: hidden;
-      transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .tool-card:hover {
-      border-color: var(--border-hover);
-      transform: translateY(-3px);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-    }
-
-    .tool-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, var(--accent-color, var(--red)), transparent);
-      opacity: 0;
-      transition: opacity 0.25s;
-    }
-
-    .tool-card:hover::before { opacity: 1; }
-
-    .tool-card.featured {
-      border-color: rgba(224,0,42,0.25);
-      background: linear-gradient(135deg, #111 60%, rgba(224,0,42,0.06));
-    }
-
-    .tool-card.featured:hover {
-      border-color: rgba(224,0,42,0.5);
-      box-shadow: 0 20px 60px rgba(224,0,42,0.15);
-    }
-
-    .tool-icon {
-      width: 52px;
-      height: 52px;
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      flex-shrink: 0;
-    }
-
-    .tool-icon.red { background: var(--red-dim); border: 1px solid rgba(224,0,42,0.2); }
-    .tool-icon.blue { background: rgba(37,99,235,0.12); border: 1px solid rgba(37,99,235,0.2); }
-    .tool-icon.green { background: rgba(5,150,105,0.12); border: 1px solid rgba(5,150,105,0.2); }
-    .tool-icon.amber { background: rgba(217,119,6,0.12); border: 1px solid rgba(217,119,6,0.2); }
-
-    .tool-tag {
-      display: inline-block;
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      padding: 3px 9px;
-      border-radius: 6px;
-      margin-bottom: 4px;
-    }
-
-    .tag-live { background: rgba(5,150,105,0.15); color: #10b981; border: 1px solid rgba(5,150,105,0.25); }
-    .tag-soon { background: rgba(217,119,6,0.12); color: #f59e0b; border: 1px solid rgba(217,119,6,0.2); }
-    .tag-external { background: rgba(124,58,237,0.12); color: #a78bfa; border: 1px solid rgba(124,58,237,0.2); }
-
-    .tool-name {
-      font-size: 20px;
-      font-weight: 700;
-      letter-spacing: -0.01em;
       color: var(--text);
       margin-bottom: 6px;
     }
 
-    .tool-desc {
-      font-size: 13.5px;
+    .section-sub {
+      font-size: 14px;
       color: var(--muted);
-      line-height: 1.6;
     }
 
-    .tool-features {
+    /* ── TOOLS LIST ── */
+    .tools-list {
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      margin-top: 4px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      background: var(--surface);
     }
 
-    .tool-feature {
+    .tool-row {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 16px;
+      padding: 20px 24px;
+      text-decoration: none;
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+      transition: background 0.18s;
+      cursor: pointer;
+    }
+
+    .tool-row:last-child { border-bottom: none; }
+
+    .tool-row:not(.disabled):hover { background: var(--surface2); }
+
+    .tool-row.disabled { cursor: default; opacity: 0.5; }
+
+    .tool-row-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+    }
+
+    .tool-row-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .tool-row-name {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .tool-row-desc {
       font-size: 12px;
       color: var(--muted);
     }
 
-    .tool-feature::before {
-      content: '';
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      background: var(--subtle);
+    .tool-row-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
       flex-shrink: 0;
     }
 
-    .tool-arrow {
-      margin-top: auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding-top: 20px;
-      border-top: 1px solid var(--border);
+    .badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
     }
 
-    .tool-arrow span {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--red);
+    .badge-live {
+      background: rgba(5,150,105,0.15);
+      color: #10b981;
+      border: 1px solid rgba(5,150,105,0.25);
     }
 
-    .tool-arrow svg {
-      width: 16px;
-      height: 16px;
-      stroke: var(--red);
-      transition: transform 0.2s;
+    .badge-soon {
+      background: rgba(245,158,11,0.12);
+      color: #f59e0b;
+      border: 1px solid rgba(245,158,11,0.22);
     }
 
-    .tool-card:hover .tool-arrow svg { transform: translateX(4px); }
-
-    /* ── COMING SOON CARD ── */
-    .tool-card.coming-soon {
-      opacity: 0.6;
-      cursor: default;
+    .badge-new {
+      background: rgba(37,99,235,0.15);
+      color: #60a5fa;
+      border: 1px solid rgba(37,99,235,0.28);
     }
-    .tool-card.coming-soon:hover {
-      transform: none;
-      box-shadow: none;
+
+    .tool-arrow-icon {
+      width: 18px;
+      height: 18px;
+      color: var(--muted);
+      flex-shrink: 0;
+      transition: transform 0.2s, color 0.2s;
+    }
+
+    .tool-row:not(.disabled):hover .tool-arrow-icon {
+      transform: translateX(3px);
+      color: #60a5fa;
     }
 
     /* ── DIVIDER ── */
@@ -489,86 +439,87 @@
       margin: 0 1.5rem;
     }
 
-    /* ── INFO SECTION ── */
-    .info-section {
+    /* ── ABOUT SECTION ── */
+    .about-section {
       position: relative;
       z-index: 1;
-      max-width: 1100px;
+      max-width: 860px;
       margin: 0 auto;
-      padding: 72px 1.5rem;
+      padding: 64px 1.5rem 72px;
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 48px;
       align-items: center;
     }
 
-    @media (max-width: 768px) {
-      .info-section { grid-template-columns: 1fr; gap: 32px; }
+    @media (max-width: 700px) {
+      .about-section { grid-template-columns: 1fr; gap: 28px; }
     }
 
-    .info-text .label {
+    .about-text .label {
       font-size: 11px;
       font-weight: 700;
-      color: var(--red);
+      color: #60a5fa;
       text-transform: uppercase;
       letter-spacing: 0.1em;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
 
-    .info-text h2 {
-      font-size: clamp(22px, 3vw, 32px);
+    .about-text h2 {
+      font-size: clamp(20px, 2.6vw, 28px);
       font-weight: 800;
       letter-spacing: -0.02em;
-      margin-bottom: 14px;
-      line-height: 1.2;
+      margin-bottom: 12px;
+      line-height: 1.25;
     }
 
-    .info-text p {
-      font-size: 14px;
+    .about-text p {
+      font-size: 13.5px;
       color: var(--muted);
       line-height: 1.7;
       margin-bottom: 10px;
     }
 
-    .info-card {
+    .about-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 16px;
-      padding: 28px;
+      padding: 24px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
-    }
-
-    .info-row {
-      display: flex;
-      align-items: flex-start;
       gap: 14px;
     }
 
-    .info-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
+    .about-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .about-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
       background: var(--surface2);
       border: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 16px;
+      font-size: 15px;
       flex-shrink: 0;
     }
 
-    .info-row-text strong {
+    .about-row-text strong {
       display: block;
       font-size: 13px;
       font-weight: 600;
-      margin-bottom: 2px;
+      margin-bottom: 1px;
     }
 
-    .info-row-text span {
-      font-size: 12px;
+    .about-row-text span {
+      font-size: 11.5px;
       color: var(--muted);
+      line-height: 1.5;
     }
 
     /* ── FOOTER ── */
@@ -580,14 +531,14 @@
     }
 
     .footer-inner {
-      max-width: 1100px;
+      max-width: 860px;
       margin: 0 auto;
-      padding: 40px 1.5rem;
+      padding: 32px 1.5rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
       flex-wrap: wrap;
-      gap: 16px;
+      gap: 14px;
     }
 
     .footer-brand {
@@ -597,22 +548,21 @@
     }
 
     .footer-logo {
-      width: 30px;
-      height: 30px;
-      background: var(--red);
+      width: 28px;
+      height: 28px;
+      background: var(--blue);
       border-radius: 7px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
-    .footer-logo svg { width: 18px; height: 18px; fill: #fff; }
+    .footer-logo svg { width: 17px; height: 17px; fill: #fff; }
 
     .footer-brand-text strong {
       display: block;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
-      color: var(--text);
     }
 
     .footer-brand-text span {
@@ -621,22 +571,23 @@
     }
 
     .footer-copy {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--muted);
       text-align: right;
     }
 
-    .footer-copy strong { color: var(--text); }
+    .footer-copy strong { color: var(--text); font-weight: 600; }
 
     /* ── RESPONSIVE ── */
     @media (max-width: 640px) {
       nav { padding: 0 1rem; }
       .nav-badge { display: none; }
-      .nav-right a:not(:last-child) { display: none; }
-      .hero { padding: 70px 1rem 60px; }
+      .nav-right a:not(.nav-cta) { display: none; }
+      .hero { padding: 64px 1rem 56px; }
       .stats { flex-wrap: wrap; }
-      .stat { min-width: 140px; }
-      .section { padding: 60px 1rem; }
+      .stat { min-width: 120px; }
+      .section { padding: 52px 1rem 60px; }
+      .tool-row { padding: 16px 18px; }
       .footer-inner { flex-direction: column; align-items: flex-start; }
       .footer-copy { text-align: left; }
     }
@@ -648,19 +599,18 @@
   <nav>
     <a href="/" class="nav-brand">
       <div class="nav-logo">
-        <!-- DJI-style drone/fly icon -->
         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <path d="M3 8h3.5L8 6H5L3 8zm13-2l1.5 2H21l-2-2h-3zM8 18l-1.5-2H3l2 2h3zm8 0h3l2-2h-3.5L16 18zM12 9a3 3 0 100 6 3 3 0 000-6z"/>
         </svg>
       </div>
       <span class="nav-name">DJI <span>QBM</span></span>
     </a>
-    <div style="display:flex;align-items:center;gap:12px">
+    <div style="display:flex;align-items:center;gap:10px">
       <span class="nav-badge">Operator Hub</span>
       <div class="nav-right">
         <a href="#tools">Tools</a>
         <a href="#about">About</a>
-        <a href="https://kianc1220.github.io/store-dashboard/" target="_blank" style="background:var(--red);color:#fff;font-weight:600;border-radius:8px;">Open StoreDash →</a>
+        <a href="https://kianc1220.github.io/store-dashboard/" target="_blank" class="nav-cta">StoreDash →</a>
       </div>
     </div>
   </nav>
@@ -670,8 +620,8 @@
     <div class="hero-eyebrow">DJI Queensbay Mall · Operator Tools</div>
     <h1>Your store.<br /><span>Smarter</span> every day.</h1>
     <p class="hero-sub">
-      Internal tools built for the QBM team — analyse sales performance,
-      manage workshops, and stay on top of your numbers.
+      Internal tools built for the QBM team — analyse sales, manage workshops,
+      and stay on top of your numbers.
     </p>
     <div class="hero-actions">
       <a href="https://kianc1220.github.io/store-dashboard/" target="_blank" class="btn-primary">
@@ -687,7 +637,7 @@
   <div class="stats">
     <div class="stat">
       <div class="stat-value"><span>2</span></div>
-      <div class="stat-label">Operator Tools</div>
+      <div class="stat-label">Live Tools</div>
     </div>
     <div class="stat">
       <div class="stat-value">QBM</div>
@@ -707,97 +657,86 @@
   <section class="section" id="tools">
     <div class="section-header">
       <div class="section-label">Operator Tools</div>
-      <div class="section-title">Everything you need, one place.</div>
-      <div class="section-sub">Built for the QBM team. No logins, no setup — just open and go.</div>
+      <div class="section-title">Everything in one place.</div>
+      <div class="section-sub">All your QBM tools, right here. Open and go.</div>
     </div>
 
-    <div class="tools-grid">
+    <div class="tools-list">
 
       <!-- StoreDash -->
-      <a href="https://kianc1220.github.io/store-dashboard/" target="_blank" class="tool-card featured">
-        <div>
-          <span class="tool-tag tag-live">● Live</span>
-          <div style="display:flex;align-items:center;gap:14px;margin-top:12px">
-            <div class="tool-icon red">📊</div>
-            <div>
-              <div class="tool-name">StoreDash</div>
-              <div style="font-size:12px;color:var(--muted)">Sales analytics · CSV upload</div>
-            </div>
-          </div>
+      <a href="https://kianc1220.github.io/store-dashboard/" target="_blank" class="tool-row">
+        <div class="tool-row-icon">📊</div>
+        <div class="tool-row-info">
+          <div class="tool-row-name">StoreDash</div>
+          <div class="tool-row-desc">Sales analytics, staff leaderboard, PDF report &amp; CSV export</div>
         </div>
-        <div class="tool-desc">
-          Upload your Kassie Customer Purchase Listing CSV and instantly get
-          revenue breakdowns, staff leaderboards, top products, heatmaps,
-          and auto-insights — no internet required after load.
-        </div>
-        <div class="tool-features">
-          <div class="tool-feature">Revenue, discounts & RSP gap analysis</div>
-          <div class="tool-feature">Staff performance &amp; sales targets</div>
-          <div class="tool-feature">Hour × day traffic heatmap</div>
-          <div class="tool-feature">Export PDF report &amp; CSV</div>
-          <div class="tool-feature">Compare two stores side-by-side</div>
-        </div>
-        <div class="tool-arrow">
-          <span>Open StoreDash</span>
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <div class="tool-row-right">
+          <span class="badge badge-live">● Live</span>
+          <svg class="tool-arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M5 12h14M12 5l7 7-7 7"/>
           </svg>
         </div>
       </a>
 
-      <!-- Workshop Registration -->
-      <a href="#" class="tool-card" id="workshop-card" onclick="return handleWorkshopClick(event)">
-        <div>
-          <span class="tool-tag tag-external">↗ External</span>
-          <div style="display:flex;align-items:center;gap:14px;margin-top:12px">
-            <div class="tool-icon amber">🎓</div>
-            <div>
-              <div class="tool-name">Workshop Registration</div>
-              <div style="font-size:12px;color:var(--muted)">Google Form · Auto-generate</div>
-            </div>
-          </div>
+      <!-- Workshop Hub -->
+      <a href="/workshop/" class="tool-row">
+        <div class="tool-row-icon">🎓</div>
+        <div class="tool-row-info">
+          <div class="tool-row-name">Workshop Hub</div>
+          <div class="tool-row-desc">Create &amp; manage DJI workshop registrations, auto-generate Google Forms from poster</div>
         </div>
-        <div class="tool-desc">
-          Create and manage DJI workshop registration forms. Upload a workshop
-          poster and automatically generate a branded Google Form — ready to
-          share with participants in seconds.
-        </div>
-        <div class="tool-features">
-          <div class="tool-feature">Auto-generate Google Forms from poster</div>
-          <div class="tool-feature">Custom branding &amp; participant slots</div>
-          <div class="tool-feature">Registration dashboard &amp; tracking</div>
-          <div class="tool-feature">Confirmation emails to participants</div>
-        </div>
-        <div class="tool-arrow">
-          <span>Open Workshop Tool</span>
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <div class="tool-row-right">
+          <span class="badge badge-new">★ New</span>
+          <svg class="tool-arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M5 12h14M12 5l7 7-7 7"/>
           </svg>
         </div>
       </a>
 
-    </div>
-
-    <!-- URL input for workshop tool (shown when clicked) -->
-    <div id="url-prompt" style="display:none;margin-top:16px;background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:20px 24px;">
-      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Enter the URL for your Workshop Tool to save it:</p>
-      <div style="display:flex;gap:10px">
-        <input id="workshop-url-input" type="url" placeholder="https://..."
-          style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;font-family:inherit;outline:none;" />
-        <button onclick="saveWorkshopUrl()"
-          style="background:var(--red);color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">
-          Save & Open
-        </button>
+      <!-- Coming Soon: Inventory Tracker -->
+      <div class="tool-row disabled">
+        <div class="tool-row-icon">📦</div>
+        <div class="tool-row-info">
+          <div class="tool-row-name">Inventory Tracker</div>
+          <div class="tool-row-desc">Track stock levels, low-stock alerts, and product movement</div>
+        </div>
+        <div class="tool-row-right">
+          <span class="badge badge-soon">Coming Soon</span>
+        </div>
       </div>
-    </div>
 
+      <!-- Coming Soon: Promo Calendar -->
+      <div class="tool-row disabled">
+        <div class="tool-row-icon">📅</div>
+        <div class="tool-row-info">
+          <div class="tool-row-name">Promo Calendar</div>
+          <div class="tool-row-desc">Plan upcoming DJI campaigns, bundles &amp; in-store promotions</div>
+        </div>
+        <div class="tool-row-right">
+          <span class="badge badge-soon">Coming Soon</span>
+        </div>
+      </div>
+
+      <!-- Coming Soon: Customer Insights -->
+      <div class="tool-row disabled">
+        <div class="tool-row-icon">🧑‍🤝‍🧑</div>
+        <div class="tool-row-info">
+          <div class="tool-row-name">Customer Insights</div>
+          <div class="tool-row-desc">Repeat customer tracking, purchase patterns &amp; loyalty data</div>
+        </div>
+        <div class="tool-row-right">
+          <span class="badge badge-soon">Coming Soon</span>
+        </div>
+      </div>
+
+    </div>
   </section>
 
   <div class="divider"></div>
 
   <!-- ABOUT -->
-  <div class="info-section" id="about">
-    <div class="info-text">
+  <div class="about-section" id="about">
+    <div class="about-text">
       <div class="label">About QBM Hub</div>
       <h2>Built for the QBM team, by the team.</h2>
       <p>
@@ -806,34 +745,34 @@
       </p>
       <p>
         All tools are lightweight, private, and built with your specific workflow in mind.
-        No third-party subscriptions. No complex setup.
+        No subscriptions. No complex setup.
       </p>
     </div>
-    <div class="info-card">
-      <div class="info-row">
-        <div class="info-icon">🏪</div>
-        <div class="info-row-text">
+    <div class="about-card">
+      <div class="about-row">
+        <div class="about-icon">🏪</div>
+        <div class="about-row-text">
           <strong>DJI Authorised Reseller</strong>
           <span>Queensbay Mall, Penang — Azure Telecommunication Sdn Bhd</span>
         </div>
       </div>
-      <div class="info-row">
-        <div class="info-icon">🔒</div>
-        <div class="info-row-text">
+      <div class="about-row">
+        <div class="about-icon">🔒</div>
+        <div class="about-row-text">
           <strong>Private & Secure</strong>
-          <span>No data leaves your browser — all processing happens locally</span>
+          <span>StoreDash processes all data locally — nothing leaves your browser</span>
         </div>
       </div>
-      <div class="info-row">
-        <div class="info-icon">⚡</div>
-        <div class="info-row-text">
-          <strong>No Login Required</strong>
-          <span>Open any tool directly — no accounts, no passwords</span>
+      <div class="about-row">
+        <div class="about-icon">⚡</div>
+        <div class="about-row-text">
+          <strong>No Setup Required</strong>
+          <span>Open any tool directly — just click and go</span>
         </div>
       </div>
-      <div class="info-row">
-        <div class="info-icon">📱</div>
-        <div class="info-row-text">
+      <div class="about-row">
+        <div class="about-icon">📱</div>
+        <div class="about-row-text">
           <strong>Works on All Devices</strong>
           <span>Mobile, tablet, and desktop — fully responsive</span>
         </div>
@@ -863,51 +802,6 @@
       </div>
     </div>
   </footer>
-
-  <script>
-    const WORKSHOP_KEY = 'qbm-workshop-url'
-
-    function handleWorkshopClick(e) {
-      const saved = localStorage.getItem(WORKSHOP_KEY)
-      if (saved) {
-        window.open(saved, '_blank')
-        return false
-      }
-      e.preventDefault()
-      const prompt = document.getElementById('url-prompt')
-      prompt.style.display = prompt.style.display === 'none' ? 'block' : 'none'
-      if (prompt.style.display === 'block') {
-        document.getElementById('workshop-url-input').focus()
-      }
-      return false
-    }
-
-    function saveWorkshopUrl() {
-      const val = document.getElementById('workshop-url-input').value.trim()
-      if (!val) return
-      localStorage.setItem(WORKSHOP_KEY, val)
-      document.getElementById('url-prompt').style.display = 'none'
-      window.open(val, '_blank')
-    }
-
-    // On load, update workshop card if URL already saved
-    window.addEventListener('load', () => {
-      const saved = localStorage.getItem(WORKSHOP_KEY)
-      if (saved) {
-        const card = document.getElementById('workshop-card')
-        card.href = saved
-        card.target = '_blank'
-        card.onclick = null
-      }
-    })
-
-    // Enter key in URL input
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('workshop-url-input').addEventListener('keydown', e => {
-        if (e.key === 'Enter') saveWorkshopUrl()
-      })
-    })
-  </script>
 
 </body>
 </html>

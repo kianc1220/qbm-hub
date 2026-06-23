@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DJI Workshop – Registration Dashboard</title>
+  <script>(function(){if(!localStorage.getItem('dji_auth')){window.location.replace('/workshop/login.html');}})();</script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; min-height: 100vh; }
+
+    .topbar {
+      background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+      color: #fff; padding: 18px 28px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px;
+    }
+    .topbar .brand { font-size: 12px; letter-spacing: 4px; color: #e6a014; font-weight: 800; }
+    .topbar h1 { font-size: 18px; font-weight: 700; margin-top: 4px; }
+    .topbar .badge {
+      background: #e6a014; color: #1a1a2e; font-size: 11px;
+      font-weight: 700; padding: 4px 12px; border-radius: 20px;
+    }
+    .topbar-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 24px 16px 60px; }
+
+    /* Event info bar */
+    .event-bar {
+      background: #fff; border-radius: 10px; padding: 14px 20px;
+      display: flex; flex-wrap: wrap; gap: 18px;
+      border-left: 4px solid #e6a014; margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    }
+    .event-bar span { font-size: 13px; color: #444; }
+    .event-bar strong { color: #1a1a2e; }
+
+    /* Stat cards */
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 24px; }
+    .card {
+      background: #fff; border-radius: 10px; padding: 20px 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06); text-align: center;
+    }
+    .card .num { font-size: 36px; font-weight: 800; color: #1a1a2e; line-height: 1; }
+    .card .lbl { font-size: 12px; color: #888; margin-top: 6px; text-transform: uppercase; letter-spacing: .5px; }
+    .card.gold .num { color: #e6a014; }
+
+    /* Charts row */
+    .charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .chart-box {
+      background: #fff; border-radius: 10px; padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    }
+    .chart-box h3 { font-size: 13px; color: #1a1a2e; font-weight: 700; margin-bottom: 14px; text-transform: uppercase; letter-spacing: .5px; }
+
+    /* Table */
+    .table-box {
+      background: #fff; border-radius: 10px; padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06); overflow-x: auto;
+    }
+    .table-box h3 { font-size: 13px; color: #1a1a2e; font-weight: 700; margin-bottom: 14px; text-transform: uppercase; letter-spacing: .5px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { background: #1a1a2e; color: #fff; padding: 10px 12px; text-align: left; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; }
+    td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; color: #333; }
+    tr:nth-child(even) td { background: #fafafa; }
+    tr:hover td { background: #fff8ec; }
+    .tag {
+      display: inline-block; padding: 2px 8px; border-radius: 10px;
+      font-size: 10px; font-weight: 600;
+    }
+    .tag.beginner { background: #e8f5e9; color: #2e7d32; }
+    .tag.some { background: #e3f2fd; color: #1565c0; }
+    .tag.inter { background: #fff3e0; color: #e65100; }
+
+    .footer { text-align: center; margin-top: 32px; font-size: 11px; color: #aaa; }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <div class="brand">D J I &nbsp; Q U E E N S B A Y</div>
+    <h1>DJI Drone Outdoor Workshop – Dashboard</h1>
+  </div>
+  <div class="topbar-right">
+    <div class="badge">27 June 2026</div>
+    <a href="https://docs.google.com/spreadsheets/d/1no5RG-k1oi4JJiHmYakuVaUCK1Uc-crmA_Bur-uC6es/edit" target="_blank" style="background:#1a1a2e;color:#fff;text-decoration:none;padding:6px 14px;border-radius:8px;font-size:11px;font-weight:700;">📋 Google Sheets</a>
+    <a href="/workshop/" style="background:#e6a014;color:#1a1a2e;text-decoration:none;padding:6px 14px;border-radius:8px;font-size:11px;font-weight:700;">← Workshop Hub</a>
+  </div>
+</div>
+
+<div class="container">
+  <div class="event-bar">
+    <span>📅 <strong>27 June 2026 (Saturday)</strong></span>
+    <span>⏰ <strong>4:00 PM – 5:00 PM</strong></span>
+    <span>📍 <strong>Queens Waterfront Q1, Queensbay Beach Front</strong></span>
+    <span>📞 <strong>018-323 0280</strong></span>
+    <span>🔴 <strong>Registration Closed</strong></span>
+  </div>
+
+  <div class="cards">
+    <div class="card gold"><div class="num" id="total">11</div><div class="lbl">Total Registrants</div></div>
+    <div class="card"><div class="num" id="beginners">—</div><div class="lbl">Complete Beginners</div></div>
+    <div class="card"><div class="num" id="someExp">—</div><div class="lbl">Some Experience</div></div>
+    <div class="card"><div class="num" id="intermediate">—</div><div class="lbl">Intermediate</div></div>
+  </div>
+
+  <div class="charts">
+    <div class="chart-box"><h3>Experience Level</h3><canvas id="expChart" height="200"></canvas></div>
+    <div class="chart-box"><h3>How They Heard</h3><canvas id="heardChart" height="200"></canvas></div>
+    <div class="chart-box"><h3>Age Group</h3><canvas id="ageChart" height="200"></canvas></div>
+  </div>
+
+  <div class="table-box">
+    <h3>Registered Attendees — Live data in <a href="https://docs.google.com/spreadsheets/d/1no5RG-k1oi4JJiHmYakuVaUCK1Uc-crmA_Bur-uC6es/edit" target="_blank" style="color:#1565c0;">Google Sheets</a></h3>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Full Name</th><th>Phone</th><th>Email</th><th>Age</th><th>Experience</th><th>Heard From</th></tr>
+      </thead>
+      <tbody>
+        <tr><td colspan="7" style="text-align:center;color:#aaa;font-style:italic;padding:24px;">Live attendee data is in the Google Sheet linked above.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="footer">DJI Authorised Store, Queensbay &nbsp;|&nbsp; DJI Drone Outdoor Workshop &nbsp;|&nbsp; Dashboard</div>
+</div>
+
+<script>
+  const navy = '#1a1a2e', gold = '#e6a014', blue = '#457b9d';
+  new Chart(document.getElementById('expChart'), {
+    type: 'doughnut',
+    data: { labels: ['Beginner','Some Exp','Intermediate','Advanced'], datasets: [{ data: [0,0,0,0], backgroundColor: [navy,gold,blue,'#e94560'], borderWidth: 2 }] },
+    options: { plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } } }
+  });
+  new Chart(document.getElementById('heardChart'), {
+    type: 'bar',
+    data: { labels: ['WhatsApp','Staff','Social','Friend','Walk-In','Other'], datasets: [{ data: [0,0,0,0,0,0], backgroundColor: [navy,gold,blue,'#e94560','#16213e','#aaa'], borderRadius: 6 }] },
+    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+  });
+  new Chart(document.getElementById('ageChart'), {
+    type: 'pie',
+    data: { labels: ['36+','26-35','18-25','Under 18'], datasets: [{ data: [0,0,0,0], backgroundColor: [navy,gold,blue,'#e94560'], borderWidth: 2 }] },
+    options: { plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } } }
+  });
+</script>
+</body>
+</html>
