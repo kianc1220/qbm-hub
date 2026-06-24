@@ -74,6 +74,12 @@
     .tag.inter { background: #fff3e0; color: #e65100; }
 
     .footer { text-align: center; margin-top: 32px; font-size: 11px; color: #aaa; }
+
+    .data-error {
+      background: #fff8ec; border: 1px solid #fde8a0; border-radius: 8px;
+      padding: 14px 18px; margin-top: 12px; font-size: 13px; color: #7a5a00; display: none;
+    }
+    .refresh-note { font-size: 11px; color: #aaa; text-align: right; margin-bottom: 8px; }
   </style>
 </head>
 <body>
@@ -100,10 +106,10 @@
   </div>
 
   <div class="cards">
-    <div class="card gold"><div class="num" id="total">11</div><div class="lbl">Total Registrants</div></div>
-    <div class="card"><div class="num" id="beginners">—</div><div class="lbl">Complete Beginners</div></div>
-    <div class="card"><div class="num" id="someExp">—</div><div class="lbl">Some Experience</div></div>
-    <div class="card"><div class="num" id="intermediate">—</div><div class="lbl">Intermediate</div></div>
+    <div class="card gold"><div class="num" id="total">…</div><div class="lbl">Total Registrants</div></div>
+    <div class="card"><div class="num" id="beginners">…</div><div class="lbl">Complete Beginners</div></div>
+    <div class="card"><div class="num" id="someExp">…</div><div class="lbl">Some Experience</div></div>
+    <div class="card"><div class="num" id="intermediate">…</div><div class="lbl">Intermediate</div></div>
   </div>
 
   <div class="charts">
@@ -112,38 +118,181 @@
     <div class="chart-box"><h3>Age Group</h3><canvas id="ageChart" height="200"></canvas></div>
   </div>
 
+  <p class="refresh-note" id="refreshNote"></p>
+
   <div class="table-box">
-    <h3>Registered Attendees — Live data in <a href="https://docs.google.com/spreadsheets/d/1no5RG-k1oi4JJiHmYakuVaUCK1Uc-crmA_Bur-uC6es/edit" target="_blank" style="color:#1565c0;">Google Sheets</a></h3>
+    <h3>Registered Attendees — Live data from <a href="https://docs.google.com/spreadsheets/d/1no5RG-k1oi4JJiHmYakuVaUCK1Uc-crmA_Bur-uC6es/edit" target="_blank" style="color:#1565c0;">Google Sheets</a></h3>
     <table>
       <thead>
         <tr><th>#</th><th>Full Name</th><th>Phone</th><th>Email</th><th>Age</th><th>Experience</th><th>Heard From</th></tr>
       </thead>
-      <tbody>
-        <tr><td colspan="7" style="text-align:center;color:#aaa;font-style:italic;padding:24px;">Live attendee data is in the Google Sheet linked above.</td></tr>
+      <tbody id="attendeeTable">
+        <tr><td colspan="7" style="text-align:center;color:#aaa;font-style:italic;padding:24px;">Loading…</td></tr>
       </tbody>
     </table>
+  </div>
+
+  <div class="data-error" id="dataError">
+    ⚠️ Could not load live data. Make sure the Google Sheet is shared as <strong>"Anyone with the link – Viewer"</strong>, then refresh.
+    <a href="https://docs.google.com/spreadsheets/d/1no5RG-k1oi4JJiHmYakuVaUCK1Uc-crmA_Bur-uC6es/edit" target="_blank" style="color:#0f3460;font-weight:700;margin-left:8px;">Open Sheet →</a>
   </div>
 
   <div class="footer">DJI Authorised Store, Queensbay &nbsp;|&nbsp; DJI Drone Outdoor Workshop &nbsp;|&nbsp; Dashboard</div>
 </div>
 
 <script>
-  const navy = '#1a1a2e', gold = '#e6a014', blue = '#457b9d';
-  new Chart(document.getElementById('expChart'), {
+  const navy = '#1a1a2e', gold = '#e6a014', blue = '#457b9d', red = '#e94560', dark = '#16213e';
+  const SHEET_ID = '1no5RG-k1oi4JJiHmYakuVaUCK1Uc-crmA_Bur-uC6es';
+
+  const expChart = new Chart(document.getElementById('expChart'), {
     type: 'doughnut',
-    data: { labels: ['Beginner','Some Exp','Intermediate','Advanced'], datasets: [{ data: [0,0,0,0], backgroundColor: [navy,gold,blue,'#e94560'], borderWidth: 2 }] },
+    data: { labels: ['Beginner','Some Exp','Intermediate','Advanced'], datasets: [{ data: [0,0,0,0], backgroundColor: [navy,gold,blue,red], borderWidth: 2 }] },
     options: { plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } } }
   });
-  new Chart(document.getElementById('heardChart'), {
+  const heardChart = new Chart(document.getElementById('heardChart'), {
     type: 'bar',
-    data: { labels: ['WhatsApp','Staff','Social','Friend','Walk-In','Other'], datasets: [{ data: [0,0,0,0,0,0], backgroundColor: [navy,gold,blue,'#e94560','#16213e','#aaa'], borderRadius: 6 }] },
+    data: { labels: ['WhatsApp','Staff','Social','Friend','Walk-In','Other'], datasets: [{ data: [0,0,0,0,0,0], backgroundColor: [navy,gold,blue,red,dark,'#aaa'], borderRadius: 6 }] },
     options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
   });
-  new Chart(document.getElementById('ageChart'), {
+  const ageChart = new Chart(document.getElementById('ageChart'), {
     type: 'pie',
-    data: { labels: ['36+','26-35','18-25','Under 18'], datasets: [{ data: [0,0,0,0], backgroundColor: [navy,gold,blue,'#e94560'], borderWidth: 2 }] },
+    data: { labels: ['36+','26-35','18-25','Under 18'], datasets: [{ data: [0,0,0,0], backgroundColor: [navy,gold,blue,red], borderWidth: 2 }] },
     options: { plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } } }
   });
+
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function expTag(exp) {
+    const e = exp.toLowerCase();
+    if (e.includes('beginner')) return `<span class="tag beginner">Beginner</span>`;
+    if (e.includes('some')) return `<span class="tag some">Some Exp</span>`;
+    if (e.includes('intermediate')) return `<span class="tag inter">Intermediate</span>`;
+    return `<span class="tag">${esc(exp)}</span>`;
+  }
+
+  async function loadDashboard() {
+    try {
+      const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const text = await res.text();
+      const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]+?)\);?\s*$/);
+      if (!match) throw new Error('Parse error');
+      const resp = JSON.parse(match[1]);
+      if (resp.status !== 'ok') throw new Error(resp.errors?.[0]?.message || 'Sheet error');
+
+      const { cols, rows } = resp.table;
+      document.getElementById('dataError').style.display = 'none';
+
+      if (!rows || rows.length === 0) {
+        document.getElementById('total').textContent = '0';
+        ['beginners','someExp','intermediate'].forEach(id => document.getElementById(id).textContent = '0');
+        document.getElementById('attendeeTable').innerHTML =
+          '<tr><td colspan="7" style="text-align:center;color:#aaa;font-style:italic;padding:24px;">No registrations yet.</td></tr>';
+        updateRefreshNote();
+        return;
+      }
+
+      // Detect columns by label keyword
+      const headers = cols.map(c => (c.label || c.id || '').toLowerCase());
+      const col = (kw1, kw2) => {
+        const i = headers.findIndex(h => h.includes(kw1));
+        if (i >= 0) return i;
+        return kw2 ? headers.findIndex(h => h.includes(kw2)) : -1;
+      };
+      const nameCol = col('name');
+      const phoneCol = col('phone');
+      const emailCol = col('email');
+      const ageCol = col('age');
+      const expCol = col('experience');
+      const heardCol = col('heard', 'where');
+
+      const get = (row, idx) => (idx >= 0 && row.c[idx]) ? (row.c[idx].v ?? '') : '';
+
+      const attendees = rows.map(row => ({
+        name: get(row, nameCol),
+        phone: get(row, phoneCol),
+        email: get(row, emailCol),
+        age: String(get(row, ageCol)),
+        experience: String(get(row, expCol)),
+        heard: String(get(row, heardCol)),
+      }));
+
+      // Aggregate counts
+      let beginner = 0, some = 0, intermediate = 0, advanced = 0;
+      let age36 = 0, age26 = 0, age18 = 0, ageUnder = 0;
+      let hWA = 0, hStaff = 0, hSocial = 0, hFriend = 0, hWalk = 0, hOther = 0;
+
+      attendees.forEach(a => {
+        const exp = a.experience.toLowerCase();
+        if (exp.includes('beginner')) beginner++;
+        else if (exp.includes('some')) some++;
+        else if (exp.includes('intermediate')) intermediate++;
+        else if (exp.includes('advanced')) advanced++;
+
+        const age = a.age.toLowerCase();
+        if (age.includes('36') || age.includes('above')) age36++;
+        else if (age.includes('26')) age26++;
+        else if (age.includes('18') && (age.includes('25') || age.includes('-25') || age.includes('–25'))) age18++;
+        else if (age.includes('under') || age.includes('<18')) ageUnder++;
+
+        const heard = a.heard.toLowerCase();
+        if (heard.includes('whatsapp')) hWA++;
+        else if (heard.includes('staff')) hStaff++;
+        else if (heard.includes('social')) hSocial++;
+        else if (heard.includes('friend') || heard.includes('family')) hFriend++;
+        else if (heard.includes('walk') || heard.includes('poster')) hWalk++;
+        else hOther++;
+      });
+
+      // Update stat cards
+      document.getElementById('total').textContent = attendees.length;
+      document.getElementById('beginners').textContent = beginner;
+      document.getElementById('someExp').textContent = some;
+      document.getElementById('intermediate').textContent = intermediate;
+
+      // Update charts
+      expChart.data.datasets[0].data = [beginner, some, intermediate, advanced];
+      expChart.update();
+      heardChart.data.datasets[0].data = [hWA, hStaff, hSocial, hFriend, hWalk, hOther];
+      heardChart.update();
+      ageChart.data.datasets[0].data = [age36, age26, age18, ageUnder];
+      ageChart.update();
+
+      // Update table
+      const tbody = document.getElementById('attendeeTable');
+      tbody.innerHTML = attendees.map((a, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td><strong>${esc(a.name)}</strong></td>
+          <td>${esc(a.phone)}</td>
+          <td style="font-size:12px;">${esc(a.email)}</td>
+          <td>${esc(a.age)}</td>
+          <td>${expTag(a.experience)}</td>
+          <td>${esc(a.heard)}</td>
+        </tr>`).join('');
+
+      updateRefreshNote();
+    } catch (e) {
+      console.error('Dashboard load error:', e);
+      document.getElementById('dataError').style.display = 'block';
+      document.getElementById('total').textContent = '?';
+      ['beginners','someExp','intermediate'].forEach(id => document.getElementById(id).textContent = '?');
+      document.getElementById('attendeeTable').innerHTML =
+        '<tr><td colspan="7" style="text-align:center;color:#c62828;padding:24px;">Failed to load — see message below.</td></tr>';
+    }
+  }
+
+  function updateRefreshNote() {
+    const now = new Date();
+    const t = now.toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' });
+    document.getElementById('refreshNote').textContent = `Last updated: ${t} · Auto-refreshes every 60 seconds`;
+  }
+
+  loadDashboard();
+  setInterval(loadDashboard, 60000);
 </script>
 </body>
 </html>
