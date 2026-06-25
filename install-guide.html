@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QBM Operator Hub — Phone Installation Guide</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #f8fafc;
+      color: #0f172a;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    @page {
+      size: A4;
+      margin: 0;
+    }
+
+    @media print {
+      body { background: #fff; }
+      .no-print { display: none !important; }
+      .page { page-break-after: always; box-shadow: none !important; }
+    }
+
+    /* ── PRINT BUTTON ── */
+    .no-print {
+      position: fixed;
+      bottom: 24px; right: 24px;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(37,99,235,0.4);
+      z-index: 100;
+    }
+
+    /* ── PAGE ── */
+    .page {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 20px auto;
+      background: #fff;
+      box-shadow: 0 4px 40px rgba(0,0,0,0.12);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%);
+      padding: 28px 36px 24px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .header-left {}
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .header-logo {
+      width: 36px; height: 36px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+
+    .header-name {
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+
+    .header-title {
+      font-size: 13px;
+      color: rgba(255,255,255,0.75);
+      font-weight: 500;
+    }
+
+    .header-url {
+      font-size: 11px;
+      color: rgba(255,255,255,0.6);
+      margin-top: 3px;
+      letter-spacing: 0.02em;
+    }
+
+    .qr-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      background: #fff;
+      border-radius: 12px;
+      padding: 10px 12px 8px;
+    }
+
+    .qr-block img {
+      width: 90px; height: 90px;
+      display: block;
+    }
+
+    .qr-block span {
+      font-size: 9px;
+      color: #64748b;
+      font-weight: 600;
+      text-align: center;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    /* ── BODY ── */
+    .body {
+      flex: 1;
+      padding: 24px 36px 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    /* ── SECTION ── */
+    .section {
+      background: #f8fafc;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1.5px solid #e2e8f0;
+    }
+
+    .section-header {
+      padding: 14px 18px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1.5px solid #e2e8f0;
+    }
+
+    .section-icon {
+      width: 34px; height: 34px;
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .iphone .section-header { background: #f0f9ff; }
+    .iphone .section-icon { background: #e0f2fe; }
+    .iphone .section-title { color: #0369a1; }
+
+    .android .section-header { background: #f0fdf4; }
+    .android .section-icon { background: #dcfce7; }
+    .android .section-title { color: #15803d; }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+
+    .section-sub {
+      font-size: 11px;
+      color: #64748b;
+      font-weight: 500;
+      margin-top: 1px;
+    }
+
+    .steps {
+      padding: 14px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .step {
+      display: flex;
+      gap: 11px;
+      align-items: flex-start;
+    }
+
+    .step-num {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .iphone .step-num { background: #0369a1; color: #fff; }
+    .android .step-num { background: #15803d; color: #fff; }
+
+    .step-content {}
+
+    .step-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.3;
+    }
+
+    .step-desc {
+      font-size: 11px;
+      color: #64748b;
+      line-height: 1.45;
+      margin-top: 2px;
+    }
+
+    .step-tag {
+      display: inline-block;
+      background: #e2e8f0;
+      color: #334155;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      letter-spacing: 0.02em;
+    }
+
+    .iphone .step-tag { background: #e0f2fe; color: #0369a1; }
+    .android .step-tag { background: #dcfce7; color: #15803d; }
+
+    /* ── WHAT YOU GET ── */
+    .features {
+      grid-column: 1 / -1;
+      background: linear-gradient(135deg, #eff6ff, #f0fdf4);
+      border-radius: 14px;
+      border: 1.5px solid #bfdbfe;
+      padding: 16px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .features-title {
+      font-size: 12px;
+      font-weight: 800;
+      color: #1e3a8a;
+      width: 100%;
+      margin-bottom: 2px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .feature-pill {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: #fff;
+      border: 1px solid #bfdbfe;
+      border-radius: 20px;
+      padding: 5px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #1d4ed8;
+    }
+
+    /* ── FOOTER ── */
+    .footer {
+      background: #f1f5f9;
+      border-top: 1.5px solid #e2e8f0;
+      padding: 12px 36px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-left {
+      font-size: 10px;
+      color: #94a3b8;
+    }
+
+    .footer-left strong {
+      color: #64748b;
+      font-weight: 700;
+    }
+
+    .footer-note {
+      font-size: 10px;
+      color: #94a3b8;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+
+<button class="no-print" onclick="window.print()">🖨️ Save as PDF</button>
+
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-left">
+      <div class="header-brand">
+        <div class="header-logo">📊</div>
+        <div class="header-name">QBM Operator Hub</div>
+      </div>
+      <div class="header-title">Install on your phone — quick setup guide</div>
+      <div class="header-url">🌐 qbm-operator-hub.netlify.app</div>
+    </div>
+    <div class="qr-block">
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=2&data=https://qbm-operator-hub.netlify.app" alt="QR Code" />
+      <span>Scan to open</span>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div class="body">
+
+    <!-- iPhone -->
+    <div class="section iphone">
+      <div class="section-header">
+        <div class="section-icon">🍎</div>
+        <div>
+          <div class="section-title">iPhone / iPad</div>
+          <div class="section-sub">Safari browser required</div>
+        </div>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-label">Open Safari</div>
+            <div class="step-desc">Must use <span class="step-tag">Safari</span> — Chrome on iPhone does not support Add to Home Screen.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-label">Go to the website</div>
+            <div class="step-desc">Type <span class="step-tag">qbm-operator-hub.netlify.app</span> in the address bar and press Go.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-label">Tap the Share button</div>
+            <div class="step-desc">Tap the <span class="step-tag">□↑ Share</span> icon at the bottom of the screen (middle of the toolbar).</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <div class="step-label">Add to Home Screen</div>
+            <div class="step-desc">Scroll down in the share sheet and tap <span class="step-tag">Add to Home Screen</span>.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">5</div>
+          <div class="step-content">
+            <div class="step-label">Tap Add</div>
+            <div class="step-desc">Leave the name as <strong>QBM Hub</strong> and tap <span class="step-tag">Add</span> in the top right. Done! ✓</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Android -->
+    <div class="section android">
+      <div class="section-header">
+        <div class="section-icon">🤖</div>
+        <div>
+          <div class="section-title">Android</div>
+          <div class="section-sub">Google Chrome browser required</div>
+        </div>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-label">Open Chrome</div>
+            <div class="step-desc">Use <span class="step-tag">Google Chrome</span> for the best experience and install support.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-label">Go to the website</div>
+            <div class="step-desc">Type <span class="step-tag">qbm-operator-hub.netlify.app</span> in the address bar and press Enter.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-label">Tap the install banner</div>
+            <div class="step-desc">Chrome will show a pop-up at the bottom: <span class="step-tag">Add QBM Hub to Home screen</span> — tap it.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <div class="step-label">Or use the menu</div>
+            <div class="step-desc">If no banner appears, tap <span class="step-tag">⋮ Menu</span> (top right) → <span class="step-tag">Add to Home screen</span>.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">5</div>
+          <div class="step-content">
+            <div class="step-label">Tap Install</div>
+            <div class="step-desc">Tap <span class="step-tag">Install</span> or <span class="step-tag">Add</span> in the confirmation dialog. Done! ✓</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Features -->
+    <div class="features">
+      <div class="features-title">✅ Once installed, you get:</div>
+      <div class="feature-pill">📊 StoreDash — sales analytics</div>
+      <div class="feature-pill">🎓 Workshop Hub — event management</div>
+      <div class="feature-pill">☁️ Load cloud data — no CSV upload needed</div>
+      <div class="feature-pill">📱 Full-screen app — no browser bar</div>
+      <div class="feature-pill">⚡ Fast loading — works on slow connections</div>
+      <div class="feature-pill">🔖 Home screen icon — one tap to open</div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="footer-left">
+      <strong>DJI Queensbay Mall</strong> · QBM Operator Hub · Internal use only
+    </div>
+    <div class="footer-note">
+      For help, contact your store manager<br/>
+      Built by <strong>kianc1220</strong>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
