@@ -36,9 +36,10 @@ export default async (req) => {
     const store = getStore('storedash')
 
     // Load and update the index (newest first, deduplicated by key)
-    const existing = (await store.get('index', { type: 'json' })) || []
+    const indexRaw = await store.get('index')
+    const existing = indexRaw ? JSON.parse(indexRaw) : []
     const updated = [fileMeta, ...existing.filter(f => f.key !== slugKey)]
-    await store.setJSON('index', updated)
+    await store.set('index', JSON.stringify(updated))
 
     // Save the CSV under its own key
     await store.set(slugKey, csvText)

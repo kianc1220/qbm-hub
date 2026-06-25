@@ -12,7 +12,8 @@ export default async (req) => {
 
     // Return index (list of all saved files)
     if (url.searchParams.get('meta') === 'true') {
-      const index = (await store.get('index', { type: 'json' })) || []
+      const indexRaw = await store.get('index')
+      const index = indexRaw ? JSON.parse(indexRaw) : []
       return new Response(JSON.stringify(index), {
         headers: { ...CORS, 'Content-Type': 'application/json' },
         status: 200,
