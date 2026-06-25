@@ -16,18 +16,34 @@ export default async (req) => {
     if (key !== saveKey) return new Response(JSON.stringify({ error: 'Wrong PIN' }), { headers: CORS, status: 401 })
     if (!csvText) return new Response(JSON.stringify({ error: 'No CSV data' }), { headers: CORS, status: 400 })
 
-    const store = getStore('storedash')
-    await store.set('latest-csv', csvText)
-    await store.setJSON('latest-meta', {
-      savedAt: new Date().toISOString(),
-      size: csvText.length,
+    // Slug the filename into a safe blob key
+    const slugKey = 'file-' + (filename || 'report')
+      .replace(/\.csv$/i, '')
+      .replace(/[^a-z0-9]+/gi, '-')
+      .toLowerCase()
+      .slice(0, 60)
+
+    const fileMeta = {
+      key: slugKey,
       filename: filename || 'report.csv',
       outlet: outlet || '',
       period: period || '',
       totalTx: totalTx || null,
-    })
+      size: csvText.length,
+      savedAt: new Date().toISOString(),
+    }
 
-    return new Response(JSON.stringify({ success: true }), { headers: CORS, status: 200 })
+    const store = getStore('storedash')
+
+    // Load and update the index (newest first, deduplicated by key)
+    const existing = (await store.get('index', { type: 'json' })) || []
+    const updated = [fileMeta, ...existing.filter(f => f.key !== slugKey)]
+    await store.setJSON('index', updated)
+
+    // Save the CSV under its own key
+    await store.set(slugKey, csvText)
+
+    return new Response(JSON.stringify({ success: true, key: slugKey }), { headers: CORS, status: 200 })
   } catch (err) {
     return new Response(JSON.stringify({ error: err.message }), { headers: CORS, status: 500 })
   }
