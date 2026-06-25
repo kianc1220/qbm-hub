@@ -1,0 +1,19 @@
+{
+  "name": "StoreDash",
+  "short_name": "StoreDash",
+  "description": "DJI QBM sales analytics dashboard",
+  "start_url": "/storedash/",
+  "scope": "/storedash/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f4f6fb",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
