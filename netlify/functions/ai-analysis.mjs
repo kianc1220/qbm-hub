@@ -68,17 +68,19 @@ Rules:
     const client = new Anthropic({ apiKey: key })
     const message = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1200,
+      max_tokens: 2048,
       messages: [{ role: 'user', content: prompt }],
     })
 
-    const text = message.content[0]?.text || ''
+    const raw = message.content[0]?.text || ''
+    // Strip markdown code fences if model wrapped the JSON
+    const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim()
     let analysis
     try {
       const match = text.match(/\{[\s\S]*\}/)
       analysis = JSON.parse(match ? match[0] : text)
     } catch {
-      analysis = { summary: text, hotProducts: [], strengths: [], improvements: [] }
+      analysis = { summary: raw, hotProducts: [], strengths: [], improvements: [] }
     }
 
     return new Response(JSON.stringify({ ok: true, analysis }), { headers: CORS })
