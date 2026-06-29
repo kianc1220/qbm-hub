@@ -81,7 +81,8 @@
     .card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 0.5rem; }
     .card-customer { font-weight: 600; font-size: 0.95rem; }
     .card-invoice { font-size: 0.75rem; color: var(--text-muted); font-family: monospace; margin-top: 2px; }
-    .card-phone { font-size: 0.8rem; color: var(--text-muted); }
+    .card-phone { font-size: 0.8rem; color: #25d366; text-decoration: none; display: inline-flex; align-items: center; gap: 3px; }
+    .card-phone:hover { text-decoration: underline; }
     .card-product { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.6rem; }
 
     .card-money { display: flex; gap: 1.5rem; margin-bottom: 0.6rem; flex-wrap: wrap; }
@@ -532,7 +533,7 @@ function renderPreorders() {
         <div>
           <div class="card-customer">${esc(dep.customer || '–')}</div>
           ${dep.invoiceNo ? `<div class="card-invoice">${esc(dep.invoiceNo)}</div>` : ''}
-          ${dep.phone ? `<div class="card-phone">${esc(dep.phone)}</div>` : ''}
+          ${dep.phone ? `<a href="https://wa.me/${formatWA(dep.phone)}" target="_blank" rel="noopener" class="card-phone">📱 ${esc(dep.phone)}</a>` : ''}
         </div>
         <div class="card-actions">${actions}</div>
       </div>
@@ -616,12 +617,11 @@ function processCSV(file) {
     try {
       const parsed = parseCSV(e.target.result);
 
-      // Filter: QBM01D-prefix invoices, Status != Void, Used == 0
+      // Filter: QBM01D-prefix invoices, Status != Void (include collected + pending)
       const depositRows = parsed.filter(r => {
         const inv = (r['Invoice No.'] || r['Invoice No'] || '').trim();
         const status = (r['Status'] || '').trim().toLowerCase();
-        const used = parseFloat(r['Used'] || '0') || 0;
-        return isDepositInvoice(inv) && status !== 'void' && used === 0;
+        return isDepositInvoice(inv) && status !== 'void';
       });
 
       if (!depositRows.length) {
@@ -645,6 +645,11 @@ function processCSV(file) {
         const rawAmt = (r['Invoice Amount'] || r['Net Sales(MYR)'] || r['Amount'] || '0').replace(/,/g, '');
         const amount = parseFloat(rawAmt) || 0;
 
+        // Used amount — determines collected status
+        const rawUsed = (r['Used'] || '0').replace(/,/g, '');
+        const usedAmt = parseFloat(rawUsed) || 0;
+        const autoStatus = (amount > 0 && usedAmt >= amount) ? 'collected' : 'pending';
+
         // Product from Remarks ("DEPOSIT FOR MAVIC 4 PRO...") — strip "DEPOSIT FOR " prefix
         const remarks = (r['Remarks'] || r['Product Description'] || '').trim();
         const product = remarks.replace(/^deposit\s+for\s+/i, '').trim();
@@ -652,13 +657,18 @@ function processCSV(file) {
         // Salesman: strip "QBM-" prefix
         const salesman = (r['Salesman'] || '').replace(/^QBM-/i, '').trim();
 
+        // Phone: try multiple column names
+        const phone = (r['Customer Contact'] || r['Contact No.'] || r['Mobile No.'] || r['Mobile'] || r['Phone'] || r['Tel'] || '').trim();
+
         toImport.push({
           invoiceNo: inv,
           product,
           depositPaid: Math.abs(amount),
           salesman,
+          phone,
           customer: (r['Customer Name'] || r['Member Name'] || '').trim(),
           orderDate: dateParsed,
+          status: autoStatus,
         });
       });
 
@@ -669,8 +679,10 @@ function processCSV(file) {
 
       pendingImport = toImport;
       document.getElementById('import-title').textContent = `Import ${toImport.length} Deposit${toImport.length>1?'s':''}`;
+      const collectedCount = toImport.filter(d => d.status === 'collected').length;
+      const pendingCount = toImport.filter(d => d.status === 'pending').length;
       document.getElementById('import-summary').textContent =
-        `Found ${depositRows.length} pending D-invoice${depositRows.length>1?'s':''} (Valid, Used=0). Importing ${toImport.length} new` +
+        `Found ${depositRows.length} D-invoice${depositRows.length>1?'s':''} (${pendingCount} pending, ${collectedCount} collected). Importing ${toImport.length} new` +
         (toSkip.length ? `, skipping ${toSkip.length} already exist.` : '.');
       document.getElementById('import-list').innerHTML = toImport.map(d=>`
         <div class="import-row">
@@ -690,6 +702,12 @@ function processCSV(file) {
 }
 
 // Invoice must match QBM01D pattern: QBM + digits + D + digits
+function formatWA(phone) {
+  let p = (phone || '').replace(/[\s\-().+]/g, '');
+  if (p.startsWith('0')) p = '60' + p.slice(1);
+  return p;
+}
+
 function isDepositInvoice(inv) {
   return /^QBM\d+D/i.test(inv.trim());
 }
@@ -741,7 +759,7 @@ async function confirmImport() {
   const btn = document.getElementById('import-confirm-btn');
   btn.disabled = true; btn.textContent = 'Importing…';
   try {
-    const items = pendingImport.map(d => ({ type: 'preorder', status: 'pending', ...d }));
+    const items = pendingImport.map(d => ({ type: 'preorder', ...d }));
     const res = await fetch(API + '?action=bulk-add', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
