@@ -22,9 +22,33 @@
     .nav-title { font-size: 0.95rem; font-weight: 600; }
     .nav-brand { font-size: 0.82rem; color: var(--text-muted); font-weight: 500; }
 
-    #loading-screen { display: flex; align-items: center; justify-content: center; height: calc(100vh - 56px); }
-    .spinner { width: 36px; height: 36px; border: 3px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    /* ── SPLASH ── */
+    #splash {
+      position: fixed; inset: 0; z-index: 9999;
+      background: linear-gradient(160deg, #080d1a 0%, #0a0f1e 50%, #0d1117 100%);
+      display: flex; align-items: center; justify-content: center; flex-direction: column;
+      transition: opacity 0.5s ease;
+    }
+    #splash.hiding { opacity: 0; pointer-events: none; }
+    .splash-logo { width: 64px; height: 64px; border-radius: 16px; overflow: hidden; box-shadow: 0 0 40px rgba(220,0,0,0.35); margin-bottom: 20px; animation: splashPop 0.5s cubic-bezier(0.34,1.56,0.64,1) both; }
+    .splash-brand { font-size: 11px; letter-spacing: 4px; color: #e00; font-weight: 800; margin-bottom: 6px; animation: splashFade 0.5s 0.1s both; }
+    .splash-title { font-size: 20px; font-weight: 700; color: #e6edf3; margin-bottom: 28px; animation: splashFade 0.5s 0.18s both; }
+    .splash-ring { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.08); border-top-color: #e00; border-radius: 50%; animation: spin 0.75s linear infinite; }
+    .splash-dots { display: flex; gap: 7px; margin-top: 18px; }
+    .splash-dots span { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.2); animation: dotPulse 1.2s ease-in-out infinite; }
+    .splash-dots span:nth-child(2) { animation-delay: 0.18s; }
+    .splash-dots span:nth-child(3) { animation-delay: 0.36s; }
+    @keyframes splashPop  { from { opacity:0; transform:scale(0.8) translateY(12px); } to { opacity:1; transform:scale(1) translateY(0); } }
+    @keyframes splashFade { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes spin       { to { transform: rotate(360deg); } }
+    @keyframes dotPulse   { 0%,80%,100% { opacity:0.2; transform:scale(0.8); } 40% { opacity:1; transform:scale(1); } }
+
+    /* ── PAGE ANIMATIONS ── */
+    @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes slideIn { from { opacity:0; transform:translateX(-12px); } to { opacity:1; transform:translateX(0); } }
+    .anim { opacity: 0; }
+    .anim.visible { animation: fadeUp 0.45s cubic-bezier(0.22,1,0.36,1) both; }
+    .deposit-card { animation: fadeUp 0.4s cubic-bezier(0.22,1,0.36,1) both; }
 
     #app { display: none; max-width: 920px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem; }
 
@@ -196,12 +220,18 @@
   </a>
 </nav>
 
-<div id="loading-screen"><div class="spinner"></div></div>
+<div id="splash">
+  <div class="splash-logo"><img src="/icon.svg" alt="QBM" style="width:100%;height:100%;object-fit:cover;display:block;" /></div>
+  <div class="splash-brand">DJI QBM</div>
+  <div class="splash-title">Deposit Tracker</div>
+  <div class="splash-ring"></div>
+  <div class="splash-dots"><span></span><span></span><span></span></div>
+</div>
 
 <div id="app">
 
   <!-- SYNC BANNER -->
-  <div class="sync-banner" id="sync-banner"
+  <div class="sync-banner anim" id="sync-banner"
     ondragover="event.preventDefault();this.classList.add('drag-over')"
     ondragleave="this.classList.remove('drag-over')"
     ondrop="handleDrop(event)">
@@ -215,7 +245,7 @@
   </div>
 
   <!-- STATS -->
-  <div class="stats-grid">
+  <div class="stats-grid anim" style="animation-delay:60ms">
     <div class="stat-card">
       <div class="stat-label">Active Orders</div>
       <div class="stat-value" id="sv-active">–</div>
@@ -239,13 +269,13 @@
   </div>
 
   <!-- TABS -->
-  <div class="tabs">
+  <div class="tabs anim" style="animation-delay:120ms">
     <button class="tab-btn active" id="tab-btn-preorders" onclick="switchTab('preorders',this)">📋 Pre-orders</button>
     <button class="tab-btn" id="tab-btn-products" onclick="switchTab('products',this)">📦 Products</button>
   </div>
 
   <div id="tab-preorders" class="tab-panel">
-    <div class="toolbar">
+    <div class="toolbar anim" style="animation-delay:180ms">
       <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
       <button class="filter-btn" onclick="setFilter('pending',this)">Pending</button>
       <button class="filter-btn" onclick="setFilter('overdue',this)">Overdue</button>
@@ -417,13 +447,27 @@ let pendingCancel = [];
 let pendingCollect = [];
 let pendingSyncUpdates = [];
 
+/* ── SPLASH HIDE ── */
+function hideSplash() {
+  const splash = document.getElementById('splash');
+  const app = document.getElementById('app');
+  if (!splash || splash.classList.contains('hiding')) return;
+  splash.classList.add('hiding');
+  app.style.display = 'block';
+  setTimeout(() => {
+    splash.style.display = 'none';
+    // Scroll-triggered animations for static sections
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+    }, { threshold: 0.1, rootMargin: '0px 0px -20px 0px' });
+    document.querySelectorAll('.anim').forEach(el => obs.observe(el));
+  }, 500);
+}
+
 /* ── INIT ── */
 window.addEventListener('DOMContentLoaded', async () => {
-  setTimeout(() => {
-    document.getElementById('loading-screen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    renderAll();
-  }, 8000);
+  // Safety fallback — show app after 8s even if fetch hangs
+  const fallback = setTimeout(() => { renderAll(); hideSplash(); }, 8000);
   try {
     const res = await Promise.race([
       fetch(API + '?action=list'),
@@ -431,9 +475,9 @@ window.addEventListener('DOMContentLoaded', async () => {
     ]);
     if (res.ok) deposits = await res.json();
   } catch {}
-  document.getElementById('loading-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
+  clearTimeout(fallback);
   renderAll();
+  hideSplash();
   document.getElementById('f-orderdate').value = today();
   document.getElementById('fb-date').value = today();
 });

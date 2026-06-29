@@ -123,14 +123,134 @@
 
     .footer { text-align: center; margin-top: 40px; font-size: 11px; color: #aaa; }
 
+    /* ── Page animations ── */
+    @keyframes fadeUp  { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes slideIn { from { opacity:0; transform:translateX(-12px); } to { opacity:1; transform:translateX(0); } }
+    .anim { opacity: 0; }
+    .anim.visible { animation: fadeUp 0.45s cubic-bezier(0.22,1,0.36,1) both; }
+    .section-title.anim.visible { animation: slideIn 0.35s ease-out both; }
+    .workshop-card.anim.visible:nth-child(1) { animation-delay: 0ms; }
+    .workshop-card.anim.visible:nth-child(2) { animation-delay: 90ms; }
+    .workshop-card.anim.visible:nth-child(3) { animation-delay: 180ms; }
+
     @media (max-width: 520px) {
       .workshop-card .actions { flex-direction: column; }
       .btn { justify-content: center; }
     }
+
+    /* ── Splash screen ── */
+    #splash {
+      position: fixed; inset: 0; z-index: 9999;
+      background: linear-gradient(160deg, #080d1a 0%, #0a1628 45%, #0d1f3c 100%);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      transition: opacity 0.4s ease;
+    }
+    #splash.fade { opacity: 0; pointer-events: none; }
+    #splash .grid {
+      position: absolute; inset: 0;
+      background-image: linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);
+      background-size: 40px 40px;
+    }
+    #splash .content { text-align: center; padding: 0 2rem; position: relative; animation: splashPop .55s cubic-bezier(.34,1.56,.64,1); }
+    #splash .eyebrow { color: #e6a014; font-size: 10px; font-weight: 800; letter-spacing: .35em; text-transform: uppercase; margin: 0 0 18px; }
+    #splash .icon { font-size: 52px; line-height: 1; margin-bottom: 16px; }
+    #splash h1 { color: #fff; font-size: 30px; font-weight: 800; letter-spacing: -.03em; margin: 0 0 6px; }
+    #splash .sub { color: rgba(255,255,255,.4); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; margin: 0 0 36px; }
+    #splash .dots { display: flex; gap: 8px; justify-content: center; }
+    #splash .dot { width: 7px; height: 7px; border-radius: 50%; background: #e6a014; animation: splashDot 1.2s ease-in-out infinite; }
+    #splash .dot:nth-child(2) { animation-delay: .2s; }
+    #splash .dot:nth-child(3) { animation-delay: .4s; }
+    @keyframes splashPop { from { transform: scale(.82) translateY(10px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+    @keyframes splashDot { 0%,80%,100% { opacity: .2; transform: scale(.8); } 40% { opacity: 1; transform: scale(1); } }
+
+    /* ── Offline screen ── */
+    #offline-screen {
+      position: fixed; inset: 0; z-index: 9997; display: none;
+      background: linear-gradient(160deg, #080d1a 0%, #0a1628 45%, #0d1f3c 100%);
+      flex-direction: column; align-items: center; justify-content: center;
+    }
+    #offline-screen .grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px); background-size: 40px 40px; }
+    #offline-screen .content { text-align: center; padding: 0 2rem; position: relative; }
+    #offline-screen .icon { font-size: 52px; margin-bottom: 20px; }
+    #offline-screen h2 { color: #fff; font-size: 22px; font-weight: 800; margin: 0 0 10px; letter-spacing: -.02em; }
+    #offline-screen p { color: rgba(255,255,255,.45); font-size: 14px; margin: 0 0 32px; line-height: 1.6; }
+    #offline-screen .badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: 10px 20px; }
+    #offline-screen .badge .dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; }
+    #offline-screen .badge span { color: rgba(255,255,255,.5); font-size: 12px; font-weight: 600; letter-spacing: .05em; }
   </style>
 </head>
 <body>
 <script>(function(){if(!localStorage.getItem('dji_auth')){window.location.replace('/workshop/login.html');}})();</script>
+
+<!-- Offline screen -->
+<div id="offline-screen">
+  <div class="grid"></div>
+  <div class="content">
+    <div class="icon">📡</div>
+    <h2>You are offline</h2>
+    <p>Connect to the internet to access Workshop Hub.<br>This page will reload automatically when you're back online.</p>
+    <div class="badge"><div class="dot"></div><span>NO CONNECTION</span></div>
+  </div>
+</div>
+
+<!-- Splash -->
+<div id="splash">
+  <div class="grid"></div>
+  <div class="content">
+    <p class="eyebrow">DJI Queensbay Mall</p>
+    <div class="icon">🎓</div>
+    <h1>Workshop Hub</h1>
+    <p class="sub">Operator Hub · Events &amp; Registrations</p>
+    <div class="dots">
+      <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    </div>
+  </div>
+</div>
+<script>
+  (function() {
+    var start = Date.now();
+    function dismiss() {
+      var elapsed = Date.now() - start;
+      var wait = Math.max(0, 700 - elapsed);
+      setTimeout(function() {
+        var s = document.getElementById('splash');
+        if (s) {
+          s.classList.add('fade');
+          setTimeout(function() {
+            s.remove();
+            // Start scroll-triggered animations
+            var obs = new IntersectionObserver(function(entries) {
+              entries.forEach(function(e) {
+                if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }
+              });
+            }, { threshold: 0.08, rootMargin: '0px 0px -20px 0px' });
+            document.querySelectorAll('.anim').forEach(function(el) { obs.observe(el); });
+          }, 400);
+        }
+      }, wait);
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', dismiss);
+    } else {
+      dismiss();
+    }
+
+    // Offline detection
+    function showOffline() {
+      var el = document.getElementById('offline-screen');
+      if (!el) return;
+      el.style.display = 'flex';
+    }
+    function hideOffline() {
+      var el = document.getElementById('offline-screen');
+      if (!el) return;
+      el.style.display = 'none';
+    }
+    if (!navigator.onLine) showOffline();
+    window.addEventListener('offline', showOffline);
+    window.addEventListener('online', hideOffline);
+  })();
+</script>
 
 <div class="topbar">
   <div>
@@ -147,11 +267,11 @@
 <div class="container">
 
   <!-- Active / Past Workshops -->
-  <div class="section-title">Workshops</div>
+  <div class="section-title anim">Workshops</div>
   <div class="workshop-grid">
 
     <!-- Workshop 1: DJI Drone Outdoor Workshop Jun 27 -->
-    <div class="workshop-card">
+    <div class="workshop-card anim">
       <div class="accent"></div>
       <div class="body">
         <div class="meta">
@@ -177,7 +297,7 @@
     </div>
 
     <!-- Placeholder for next workshop -->
-    <div class="workshop-card upcoming">
+    <div class="workshop-card upcoming anim">
       <div class="accent"></div>
       <div class="body">
         <div class="meta">
@@ -197,8 +317,8 @@
   </div>
 
   <!-- Create New -->
-  <div class="section-title">Create New Workshop</div>
-  <div class="new-card">
+  <div class="section-title anim" style="animation-delay:120ms">Create New Workshop</div>
+  <div class="new-card anim" style="animation-delay:180ms">
     <div class="icon">🚁</div>
     <h3>Upload a workshop poster to auto-generate everything</h3>
     <p>Drag &amp; drop (or click) your poster image below. Claude AI will read the details and create the registration form, dashboard, and update this hub — automatically.</p>
