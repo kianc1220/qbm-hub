@@ -639,8 +639,9 @@ function processCSV(file) {
         const dateRaw = (r['Date'] || '').trim();
         const dateParsed = parseDMY(dateRaw) || today();
 
-        // Amount from Invoice Amount column
-        const amount = parseFloat(r['Invoice Amount'] || r['Net Sales(MYR)'] || r['Amount'] || 0);
+        // Amount from Invoice Amount column — strip thousand-separator commas before parsing
+        const rawAmt = (r['Invoice Amount'] || r['Net Sales(MYR)'] || r['Amount'] || '0').replace(/,/g, '');
+        const amount = parseFloat(rawAmt) || 0;
 
         // Product from Remarks ("DEPOSIT FOR MAVIC 4 PRO...") — strip "DEPOSIT FOR " prefix
         const remarks = (r['Remarks'] || r['Product Description'] || '').trim();
