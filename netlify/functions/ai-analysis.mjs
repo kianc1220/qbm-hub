@@ -1,24 +1,58 @@
 import Anthropic from '@anthropic-ai/sdk'
+import { getStore } from '@netlify/blobs'
 
 const CORS = { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 const fmtH = h => h === 0 ? '12am' : h < 12 ? `${h}am` : h === 12 ? '12pm' : `${h - 12}pm`
 
+const getIndex = store =>
+  store.get('index', { type: 'json' }).then(d => Array.isArray(d) ? d : []).catch(() => [])
+
 export default async (req) => {
   if (req.method === 'OPTIONS') return new Response('', { headers: CORS, status: 200 })
-  if (req.method !== 'POST') return new Response(JSON.stringify({ error: 'Method not allowed' }), { headers: CORS, status: 405 })
 
-  const key = process.env.ANTHROPIC_API_KEY
-  if (!key) return new Response(JSON.stringify({ error: 'ANTHROPIC_API_KEY not configured in Netlify env vars' }), { headers: CORS, status: 500 })
+  const url = new URL(req.url)
+  const action = url.searchParams.get('action')
+  const store = getStore('qbm-ai-analyses')
+
+  // ── GET: list saved analyses ──────────────────────────────────────────────
+  if (req.method === 'GET' && action === 'list') {
+    const index = await getIndex(store)
+    return new Response(JSON.stringify(index), { headers: CORS })
+  }
+
+  if (req.method !== 'POST') return new Response(JSON.stringify({ error: 'Not found' }), { headers: CORS, status: 404 })
 
   const body = await req.json().catch(() => ({}))
+
+  // ── POST: delete a saved analysis ─────────────────────────────────────────
+  if (action === 'delete') {
+    const { fingerprint } = body
+    if (!fingerprint) return new Response(JSON.stringify({ error: 'Missing fingerprint' }), { headers: CORS, status: 400 })
+    try { await store.delete(fingerprint) } catch {}
+    const index = await getIndex(store)
+    await store.setJSON('index', index.filter(e => e.fingerprint !== fingerprint))
+    return new Response(JSON.stringify({ ok: true }), { headers: CORS })
+  }
+
+  // ── POST: generate (or return cached) analysis ────────────────────────────
+  const key = process.env.ANTHROPIC_API_KEY
+  if (!key) return new Response(JSON.stringify({ error: 'ANTHROPIC_API_KEY not configured' }), { headers: CORS, status: 500 })
+
   const {
+    fingerprint,
     outlet, period,
     totalRevenue = 0, totalOrders = 0, aov = 0, growth = 0, momChange = null,
     returnRate = 0, rspGap = 0, peakDay, peakHour,
     topProducts = [], salesmen = [], categories = [], productTypes = [],
   } = body
+
+  // Return cached result if fingerprint matches
+  if (fingerprint) {
+    const cached = await store.get(fingerprint, { type: 'json' }).catch(() => null)
+    if (cached) return new Response(JSON.stringify({ ok: true, analysis: cached, cached: true }), { headers: CORS })
+  }
 
   const prompt = `You are a senior sales analyst for DJI Malaysia. Analyze this ${outlet || 'QBM'} store data and benchmark it against the Malaysian DJI retail market.
 
@@ -90,7 +124,22 @@ Rules: hotProducts = top 3–4. strengths = 2–3. improvements = 3–4 ordered 
       analysis = { summary: raw, vsMarket: null, hotProducts: [], strengths: [], improvements: [] }
     }
 
-    return new Response(JSON.stringify({ ok: true, analysis }), { headers: CORS })
+    // Save to blob cache
+    if (fingerprint) {
+      await store.setJSON(fingerprint, analysis)
+      const index = await getIndex(store)
+      const entry = {
+        fingerprint,
+        outlet: outlet || 'Unknown',
+        period: period || '',
+        revenue: totalRevenue,
+        generatedAt: new Date().toISOString(),
+      }
+      const updated = [entry, ...index.filter(e => e.fingerprint !== fingerprint)].slice(0, 20)
+      await store.setJSON('index', updated)
+    }
+
+    return new Response(JSON.stringify({ ok: true, analysis, cached: false }), { headers: CORS })
   } catch (e) {
     return new Response(JSON.stringify({ error: e.message }), { headers: CORS, status: 500 })
   }
