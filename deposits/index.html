@@ -619,9 +619,21 @@ function processCSV(file) {
       const parsed = parseCSV(e.target.result);
 
       // Actual column names from InvoiceListing export:
-      //   Invoice No | Customer name | Mobile | Remark | Invoice Amount | Salesman Code | Status | Invoice Type
-      const getInv  = r => (r['Invoice No.'] || r['Invoice No'] || '').trim();
+      //   Invoice No | Customer name | Mobile | Remark | Invoice Amount | Salesman Code | Status | Invoice Type | Deposit (payment col)
+      const getInv    = r => (r['Invoice No.'] || r['Invoice No'] || '').trim();
       const getStatus = r => (r['Status'] || '').trim().toLowerCase();
+      const normName  = r => (r['Customer name'] || r['Customer Name'] || '').trim().toLowerCase().replace(/\s+/g,' ');
+
+      // Build collected set: normal invoices where Deposit payment > 0 → that customer's deposit was used
+      // Key = "normalised_name::deposit_amount" — matches D-invoice customer + Invoice Amount
+      const collectedKeys = new Set();
+      parsed.forEach(r => {
+        if (isDepositInvoice(getInv(r))) return;
+        const depositUsed = parseFloat((r['Deposit'] || '0').replace(/,/g,'')) || 0;
+        if (depositUsed > 0) {
+          collectedKeys.add(`${normName(r)}::${depositUsed}`);
+        }
+      });
 
       // All D-invoices (include Void so we can cancel them in existing records)
       const allDRows = parsed.filter(r => isDepositInvoice(getInv(r)));
@@ -676,6 +688,10 @@ function processCSV(file) {
         // Customer: this CSV uses "Customer name" (lowercase n)
         const customer = (r['Customer name'] || r['Customer Name'] || r['Member Name'] || '').trim();
 
+        // Auto-detect collected: if a normal invoice used this customer's deposit amount as payment
+        const collKey = `${customer.toLowerCase().replace(/\s+/g,' ')}::${amount}`;
+        const autoStatus = collectedKeys.has(collKey) ? 'collected' : 'pending';
+
         toImport.push({
           invoiceNo: inv,
           product,
@@ -684,7 +700,7 @@ function processCSV(file) {
           phone,
           customer,
           orderDate: dateParsed,
-          status: 'pending',
+          status: autoStatus,
         });
       });
 
@@ -699,8 +715,10 @@ function processCSV(file) {
       if (toImport.length) titleParts.push(`${toImport.length} new`);
       if (toCancel.length) titleParts.push(`${toCancel.length} to cancel`);
       document.getElementById('import-title').textContent = `Sync: ${titleParts.join(', ')}`;
+      const newCollected = toImport.filter(d => d.status === 'collected').length;
+      const newPending   = toImport.filter(d => d.status === 'pending').length;
       const summaryParts = [`Found ${allDRows.length} D-invoices.`];
-      if (toImport.length) summaryParts.push(`Importing ${toImport.length} new.`);
+      if (toImport.length) summaryParts.push(`Importing ${toImport.length} new (${newPending} pending, ${newCollected} collected).`);
       if (toSkip.length) summaryParts.push(`${toSkip.length} already exist.`);
       if (toCancel.length) summaryParts.push(`${toCancel.length} now Void → will cancel.`);
       document.getElementById('import-summary').textContent = summaryParts.join(' ');
