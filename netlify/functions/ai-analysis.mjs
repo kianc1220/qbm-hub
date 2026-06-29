@@ -41,15 +41,15 @@ export default async (req) => {
   if (!key) return new Response(JSON.stringify({ error: 'ANTHROPIC_API_KEY not configured' }), { headers: CORS, status: 500 })
 
   const {
-    fingerprint,
+    fingerprint, forceRegenerate = false,
     outlet, period,
     totalRevenue = 0, totalOrders = 0, aov = 0, growth = 0, momChange = null,
     returnRate = 0, rspGap = 0, peakDay, peakHour,
     topProducts = [], salesmen = [], categories = [], productTypes = [],
   } = body
 
-  // Return cached result if fingerprint matches
-  if (fingerprint) {
+  // Return cached result if fingerprint matches (unless force regenerate)
+  if (fingerprint && !forceRegenerate) {
     const cached = await store.get(fingerprint, { type: 'json' }).catch(() => null)
     if (cached) return new Response(JSON.stringify({ ok: true, analysis: cached, cached: true }), { headers: CORS })
   }
