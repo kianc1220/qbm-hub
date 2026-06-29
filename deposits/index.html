@@ -418,6 +418,7 @@ let currentFilter = 'all';
 let editingId = null;
 let modalType = 'preorder';
 let pendingImport = [];
+let pendingCancel = [];
 
 /* ── INIT ── */
 window.addEventListener('DOMContentLoaded', async () => {
@@ -617,48 +618,63 @@ function processCSV(file) {
     try {
       const parsed = parseCSV(e.target.result);
 
-      // Filter: QBM01D-prefix invoices, Status != Void (include collected + pending)
-      const depositRows = parsed.filter(r => {
-        const inv = (r['Invoice No.'] || r['Invoice No'] || '').trim();
-        const status = (r['Status'] || '').trim().toLowerCase();
-        return isDepositInvoice(inv) && status !== 'void';
-      });
+      // Actual column names from InvoiceListing export:
+      //   Invoice No | Customer name | Mobile | Remark | Invoice Amount | Salesman Code | Status | Invoice Type
+      const getInv  = r => (r['Invoice No.'] || r['Invoice No'] || '').trim();
+      const getStatus = r => (r['Status'] || '').trim().toLowerCase();
 
-      if (!depositRows.length) {
-        setBadge('No pending D-invoices found', 'err');
+      // All D-invoices (include Void so we can cancel them in existing records)
+      const allDRows = parsed.filter(r => isDepositInvoice(getInv(r)));
+
+      // Build lookup: invoiceNo → csv status
+      const csvStatusMap = {};
+      allDRows.forEach(r => { csvStatusMap[getInv(r)] = getStatus(r); });
+
+      // Non-void rows for import
+      const depositRows = allDRows.filter(r => getStatus(r) !== 'void');
+
+      if (!allDRows.length) {
+        setBadge('No D-invoices found in this file', 'err');
         return;
       }
 
-      const existingInvoices = new Set(deposits.filter(d=>d.invoiceNo).map(d=>d.invoiceNo));
+      const existingMap = {};
+      deposits.filter(d => d.invoiceNo).forEach(d => { existingMap[d.invoiceNo] = d; });
       const toImport = [];
       const toSkip = [];
+      const toCancel = []; // existing records voided in new CSV
+
+      // Mark existing deposits as cancelled if CSV now shows Void
+      deposits.forEach(d => {
+        if (d.invoiceNo && csvStatusMap[d.invoiceNo] === 'void' && d.status !== 'cancelled') {
+          toCancel.push(d.id);
+        }
+      });
 
       depositRows.forEach(r => {
-        const inv = (r['Invoice No.'] || r['Invoice No'] || '').trim();
-        if (existingInvoices.has(inv)) { toSkip.push(inv); return; }
+        const inv = getInv(r);
+        if (existingMap[inv]) { toSkip.push(inv); return; }
 
         // Date format: DD/MM/YYYY HH:MM  →  YYYY-MM-DD
         const dateRaw = (r['Date'] || '').trim();
         const dateParsed = parseDMY(dateRaw) || today();
 
-        // Amount from Invoice Amount column — strip thousand-separator commas before parsing
-        const rawAmt = (r['Invoice Amount'] || r['Net Sales(MYR)'] || r['Amount'] || '0').replace(/,/g, '');
+        // Amount
+        const rawAmt = (r['Invoice Amount'] || r['Amount'] || '0').replace(/,/g, '');
         const amount = parseFloat(rawAmt) || 0;
 
-        // Used amount — determines collected status
-        const rawUsed = (r['Used'] || '0').replace(/,/g, '');
-        const usedAmt = parseFloat(rawUsed) || 0;
-        const autoStatus = (amount > 0 && usedAmt >= amount) ? 'collected' : 'pending';
+        // Product from Remark (this CSV uses singular "Remark")
+        const remarkRaw = (r['Remark'] || r['Remarks'] || r['Product Description'] || '').trim();
+        const product = remarkRaw.replace(/^deposit\s+(rm\s*\d+\s+for\s+|for\s+)/i, '').trim();
 
-        // Product from Remarks ("DEPOSIT FOR MAVIC 4 PRO...") — strip "DEPOSIT FOR " prefix
-        const remarks = (r['Remarks'] || r['Product Description'] || '').trim();
-        const product = remarks.replace(/^deposit\s+for\s+/i, '').trim();
+        // Salesman: this CSV uses "Salesman Code"
+        const salesman = (r['Salesman Code'] || r['Salesman'] || '').replace(/^QBM-/i, '').trim();
 
-        // Salesman: strip "QBM-" prefix
-        const salesman = (r['Salesman'] || '').replace(/^QBM-/i, '').trim();
+        // Phone: this CSV uses "Mobile"
+        const phone = (r['Mobile'] || r['Customer Contact'] || r['Contact No.'] || r['Mobile No.'] || r['Phone'] || r['Tel'] || '').trim();
 
-        // Phone: try multiple column names
-        const phone = (r['Customer Contact'] || r['Contact No.'] || r['Mobile No.'] || r['Mobile'] || r['Phone'] || r['Tel'] || '').trim();
+        // Customer: this CSV uses "Customer name" (lowercase n)
+        const customer = (r['Customer name'] || r['Customer Name'] || r['Member Name'] || '').trim();
 
         toImport.push({
           invoiceNo: inv,
@@ -666,33 +682,46 @@ function processCSV(file) {
           depositPaid: Math.abs(amount),
           salesman,
           phone,
-          customer: (r['Customer Name'] || r['Member Name'] || '').trim(),
+          customer,
           orderDate: dateParsed,
-          status: autoStatus,
+          status: 'pending',
         });
       });
 
-      if (!toImport.length) {
+      if (!toImport.length && !toCancel.length) {
         setBadge(`All ${toSkip.length} already imported`, 'info');
         return;
       }
 
       pendingImport = toImport;
-      document.getElementById('import-title').textContent = `Import ${toImport.length} Deposit${toImport.length>1?'s':''}`;
-      const collectedCount = toImport.filter(d => d.status === 'collected').length;
-      const pendingCount = toImport.filter(d => d.status === 'pending').length;
-      document.getElementById('import-summary').textContent =
-        `Found ${depositRows.length} D-invoice${depositRows.length>1?'s':''} (${pendingCount} pending, ${collectedCount} collected). Importing ${toImport.length} new` +
-        (toSkip.length ? `, skipping ${toSkip.length} already exist.` : '.');
-      document.getElementById('import-list').innerHTML = toImport.map(d=>`
-        <div class="import-row">
-          <div class="import-row-top">
-            <span class="import-inv">${esc(d.invoiceNo)}</span>
-            <span class="import-amt">${d.depositPaid > 0 ? 'RM '+fmtNum(d.depositPaid) : '–'}</span>
-          </div>
-          <div class="import-customer">${esc(d.customer||'–')}</div>
-          <div class="import-prod">${esc(d.product||'–')}</div>
-        </div>`).join('');
+      pendingCancel = toCancel;
+      const titleParts = [];
+      if (toImport.length) titleParts.push(`${toImport.length} new`);
+      if (toCancel.length) titleParts.push(`${toCancel.length} to cancel`);
+      document.getElementById('import-title').textContent = `Sync: ${titleParts.join(', ')}`;
+      const summaryParts = [`Found ${allDRows.length} D-invoices.`];
+      if (toImport.length) summaryParts.push(`Importing ${toImport.length} new.`);
+      if (toSkip.length) summaryParts.push(`${toSkip.length} already exist.`);
+      if (toCancel.length) summaryParts.push(`${toCancel.length} now Void → will cancel.`);
+      document.getElementById('import-summary').textContent = summaryParts.join(' ');
+      document.getElementById('import-list').innerHTML = [
+        ...toImport.map(d=>`
+          <div class="import-row">
+            <div class="import-row-top">
+              <span class="import-inv">${esc(d.invoiceNo)}</span>
+              <span class="import-amt">${d.depositPaid > 0 ? 'RM '+fmtNum(d.depositPaid) : '–'}</span>
+            </div>
+            <div class="import-customer">${esc(d.customer||'–')}${d.phone ? ` · <span style="color:#25d366">📱${esc(d.phone)}</span>` : ''}</div>
+            <div class="import-prod">${esc(d.product||'–')}${d.salesman ? ` <span style="opacity:.6;font-size:.75rem">[${esc(d.salesman)}]</span>` : ''}</div>
+          </div>`),
+        ...toCancel.map(id => {
+          const dep = deposits.find(d => d.id === id);
+          return `<div class="import-row" style="opacity:.6;border-color:rgba(248,113,113,.3)">
+            <div class="import-row-top"><span class="import-inv">${esc(dep?.invoiceNo||id)}</span><span style="color:var(--red);font-size:.78rem">Voided</span></div>
+            <div class="import-customer">${esc(dep?.customer||'–')}</div>
+          </div>`;
+        })
+      ].join('');
       document.getElementById('import-overlay').style.display = 'flex';
     } catch(err) {
       setBadge('Parse error: ' + err.message, 'err');
@@ -759,21 +788,44 @@ async function confirmImport() {
   const btn = document.getElementById('import-confirm-btn');
   btn.disabled = true; btn.textContent = 'Importing…';
   try {
-    const items = pendingImport.map(d => ({ type: 'preorder', ...d }));
-    const res = await fetch(API + '?action=bulk-add', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(items),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || `Server error ${res.status}`);
-    if (!data.ok) throw new Error(data.error || 'Unknown error');
-    // Merge new deposits into local array
-    (data.deposits || items).forEach(d => deposits.unshift(d));
+    let imported = 0, cancelled = 0;
+
+    // Bulk-add new deposits
+    if (pendingImport.length) {
+      const items = pendingImport.map(d => ({ type: 'preorder', ...d }));
+      const res = await fetch(API + '?action=bulk-add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(items),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `Server error ${res.status}`);
+      if (!data.ok) throw new Error(data.error || 'Unknown error');
+      (data.deposits || items).forEach(d => deposits.unshift(d));
+      imported = data.added || 0;
+    }
+
+    // Cancel voided deposits one by one (usually few)
+    for (const id of pendingCancel) {
+      const res = await fetch(API + '?action=update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status: 'cancelled' }),
+      });
+      if (res.ok) {
+        const dep = deposits.find(d => d.id === id);
+        if (dep) dep.status = 'cancelled';
+        cancelled++;
+      }
+    }
+
     closeImport();
     renderAll();
-    setBadge(`✓ ${data.added} imported`, 'ok');
-    showToast(`Imported ${data.added} deposit${data.added !== 1 ? 's' : ''}!`, 'success');
+    const parts = [];
+    if (imported) parts.push(`${imported} imported`);
+    if (cancelled) parts.push(`${cancelled} cancelled`);
+    setBadge(`✓ ${parts.join(', ')}`, 'ok');
+    showToast(parts.join(', ') + '!', 'success');
   } catch (e) {
     setBadge(`Failed: ${e.message}`, 'err');
     showToast(`Import failed — ${e.message}`, 'error');
@@ -784,6 +836,7 @@ async function confirmImport() {
 function closeImport() {
   document.getElementById('import-overlay').style.display = 'none';
   pendingImport = [];
+  pendingCancel = [];
 }
 
 function setBadge(text, type) {
