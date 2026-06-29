@@ -32,6 +32,25 @@ export default async (req) => {
         return new Response(JSON.stringify({ ok: true, deposit }), { headers: CORS })
       }
 
+      if (action === 'bulk-add') {
+        const items = Array.isArray(body) ? body : body.items
+        if (!items || !items.length) return new Response(JSON.stringify({ ok: true, added: 0 }), { headers: CORS })
+        const deposits = await store.get('deposits', { type: 'json' }).catch(() => [])
+        const now = new Date().toISOString()
+        const added = []
+        items.forEach((item, i) => {
+          const deposit = {
+            id: `dep_${Date.now()}_${i}_${Math.random().toString(36).slice(2, 5)}`,
+            ...item,
+            addedAt: now,
+          }
+          deposits.unshift(deposit)
+          added.push(deposit)
+        })
+        await store.setJSON('deposits', deposits)
+        return new Response(JSON.stringify({ ok: true, added: added.length, deposits: added }), { headers: CORS })
+      }
+
       if (action === 'update') {
         const { id, ...fields } = body
         if (!id) return new Response(JSON.stringify({ error: 'Missing id' }), { headers: CORS, status: 400 })
