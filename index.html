@@ -255,19 +255,13 @@
 
     .tools-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      grid-template-columns: repeat(3, 1fr);
       gap: 16px;
       margin-bottom: 16px;
     }
-    /* Centre a lone last card in a 2-col grid — desktop only */
-    @media (min-width: 700px) {
-      .tools-grid > .tool-card:last-child:nth-child(odd) {
-        grid-column: 1 / -1;
-        max-width: calc(50% - 8px);
-        margin: 0 auto;
-        width: 100%;
-      }
-    }
+    /* Last row: centre Inventory + Deposit in a 3-col grid */
+    .tools-grid > .tool-card:nth-last-child(2):nth-child(3n+1) { grid-column: 1; }
+    .tools-grid > .tool-card:nth-last-child(1):nth-child(3n+2) { grid-column: 2; }
 
     .tool-card {
       position: relative;
@@ -469,6 +463,8 @@
       .hero-clock { font-size: 11px; }
       .tools-section { padding: 0 0.85rem 64px; }
       .tools-grid { grid-template-columns: 1fr; gap: 10px; }
+      .tools-grid > .tool-card:nth-last-child(2):nth-child(3n+1),
+      .tools-grid > .tool-card:nth-last-child(1):nth-child(3n+2) { grid-column: auto; }
       .tool-card { padding: 18px 18px 16px; border-radius: 16px; }
       .tool-card-icon { width: 42px; height: 42px; font-size: 20px; border-radius: 11px; }
       .tool-card-top { margin-bottom: 14px; }
@@ -773,7 +769,7 @@
       <a href="/deposits/" class="tool-card">
         <div class="tool-card-top">
           <div class="tool-card-icon">💰</div>
-          <span class="badge badge-beta">● Beta</span>
+          <span class="badge badge-live">● Live</span>
         </div>
         <div class="tool-card-name">Deposit Tracker</div>
         <div class="tool-card-desc">Track customer pre-order deposits, balance due, and collection dates. Record daily bank deposits by month.</div>
