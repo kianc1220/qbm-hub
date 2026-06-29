@@ -10,7 +10,7 @@ export default async (req) => {
   if (req.method !== 'POST') return new Response(JSON.stringify({ error: 'Method not allowed' }), { headers: CORS, status: 405 })
 
   const key = process.env.ANTHROPIC_API_KEY
-  if (!key) return new Response(JSON.stringify({ error: 'ANTHROPIC_API_KEY not set in Netlify environment variables' }), { headers: CORS, status: 500 })
+  if (!key) return new Response(JSON.stringify({ error: 'ANTHROPIC_API_KEY not configured in Netlify env vars' }), { headers: CORS, status: 500 })
 
   const body = await req.json().catch(() => ({}))
   const {
@@ -20,67 +20,74 @@ export default async (req) => {
     topProducts = [], salesmen = [], categories = [], productTypes = [],
   } = body
 
-  const prompt = `You are a sales performance analyst for ${outlet || 'a DJI store'} in Malaysia. Analyze this ${period || 'recent'} sales data and return actionable insights.
+  const prompt = `You are a senior sales analyst for DJI Malaysia. Analyze this ${outlet || 'QBM'} store data and benchmark it against the Malaysian DJI retail market.
 
-STORE METRICS
-- Net Revenue: RM ${totalRevenue.toFixed(2)}
-- Units Sold: ${totalOrders}
-- Average Order Value: RM ${aov.toFixed(2)}
-- Revenue Trend: ${growth >= 0 ? '+' : ''}${growth.toFixed(1)}%
-- Month-on-Month: ${momChange !== null ? `${momChange >= 0 ? '+' : ''}${momChange.toFixed(1)}%` : 'N/A'}
-- Return Rate: ${returnRate.toFixed(1)}%
-- RSP Discount Gap: RM ${rspGap.toFixed(2)}
-- Peak Traffic: ${peakDay !== undefined ? DAYS[peakDay] : '?'} at ${peakHour !== undefined ? fmtH(peakHour) : '?'}
+## MALAYSIA DJI RETAIL BENCHMARKS (for comparison)
+- Typical outlet monthly revenue: RM 80k–200k; top performers (KLCC, Pavilion KL, 1U): RM 250k–450k
+- Average return rate across Malaysian outlets: 3%–6%
+- Average order value (AOV): RM 1,400–2,200
+- Typical product mix: ~55% Drone, ~35% Handheld, ~10% Others
+- Typical RSP gap: 2%–5% of gross
+- Drone category leaders nationally: DJI Mini 4 Pro, DJI Air 3, DJI Neo
+- Handheld leaders nationally: Osmo Pocket 3, Osmo Action 5 Pro, DJI Mic 2
+- Peak trading days: Saturday & Sunday (usually 1.5–2× weekday avg)
 
-TOP PRODUCTS BY REVENUE
+## THIS STORE: ${outlet || 'QBM'} — ${period || 'recent period'}
+Revenue: RM ${totalRevenue.toFixed(0)}  |  Units: ${totalOrders}  |  AOV: RM ${aov.toFixed(0)}
+Revenue trend: ${growth >= 0 ? '+' : ''}${growth.toFixed(1)}%  |  MoM: ${momChange !== null ? `${momChange >= 0 ? '+' : ''}${momChange.toFixed(1)}%` : 'N/A'}
+Return rate: ${returnRate.toFixed(1)}%  |  RSP gap: RM ${rspGap.toFixed(0)}
+Peak: ${peakDay !== undefined ? DAYS[peakDay] : '?'} ${peakHour !== undefined ? fmtH(peakHour) : ''}
+
+TOP PRODUCTS
 ${topProducts.slice(0, 8).map((p, i) => `${i + 1}. ${p.name} — RM ${p.revenue.toLocaleString()} (${p.orders} units)`).join('\n')}
 
-SALES TEAM
+TEAM
 ${salesmen.slice(0, 6).map((s, i) => `${i + 1}. ${s.name} — RM ${s.revenue.toLocaleString()} (${s.orders} units, ${s.returnRate}% returns)`).join('\n')}
 
-PRODUCT CATEGORIES
-${categories.slice(0, 5).map(c => `- ${c.name}: RM ${c.revenue?.toLocaleString()} (${c.orders} units)`).join('\n')}
+CATEGORY MIX
+${categories.slice(0, 5).map(c => `${c.name}: RM ${c.revenue?.toLocaleString()} (${c.orders} units)`).join('\n')}
 
 PRODUCT TYPE MIX
-${productTypes.map(t => `- ${t.name}: RM ${t.revenue?.toLocaleString()} (${t.orders} units)`).join('\n')}
+${productTypes.map(t => `${t.name}: RM ${t.revenue?.toLocaleString()} (${t.orders} units)`).join('\n')}
 
-Respond with ONLY a raw JSON object (no markdown, no code fences):
+Return ONLY a raw JSON object — no markdown, no code fences:
 {
+  "summary": "2 punchy sentences: overall verdict + single top recommendation",
+  "vsMarket": {
+    "revenuePosition": "top tier|above average|average|below average",
+    "aovPosition": "above average|average|below average",
+    "returnRatePosition": "excellent|good|average|needs attention",
+    "insight": "1-2 sentences comparing this store to Malaysia DJI benchmarks with specific numbers"
+  },
   "hotProducts": [
-    { "rank": 1, "name": "exact product name from data", "revenue": 0, "units": 0, "insight": "why this product is performing well and what drives its demand" }
+    { "rank": 1, "name": "exact name", "revenue": 0, "units": 0, "badge": "Best Seller|Fast Mover|High Value|Growing", "insight": "One sharp sentence on why it's hot" }
   ],
   "strengths": [
-    { "title": "short strength title", "detail": "specific observation with numbers from the data" }
+    { "title": "3–5 word title", "detail": "One specific sentence with numbers" }
   ],
   "improvements": [
-    { "area": "area name", "priority": "high or medium", "action": "specific step they should take", "detail": "why this matters with expected impact" }
-  ],
-  "summary": "2-3 sentence executive summary of current performance and single top recommendation"
+    { "priority": "high|medium", "area": "area name", "action": "One clear action sentence", "impact": "Expected result in 1 line" }
+  ]
 }
 
-Rules:
-- hotProducts: pick top 3-4 by revenue/units, reference actual numbers
-- strengths: 2-3 genuine positives backed by data
-- improvements: 3-4 actionable items ordered by priority (high first), specific to DJI Malaysia retail
-- Be direct and specific — no generic retail advice`
+Rules: hotProducts = top 3–4. strengths = 2–3. improvements = 3–4 ordered high→medium. Be specific and direct, no fluff.`
 
   try {
     const client = new Anthropic({ apiKey: key })
     const message = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 2048,
+      max_tokens: 1800,
       messages: [{ role: 'user', content: prompt }],
     })
 
     const raw = message.content[0]?.text || ''
-    // Strip markdown code fences if model wrapped the JSON
     const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim()
     let analysis
     try {
       const match = text.match(/\{[\s\S]*\}/)
       analysis = JSON.parse(match ? match[0] : text)
     } catch {
-      analysis = { summary: raw, hotProducts: [], strengths: [], improvements: [] }
+      analysis = { summary: raw, vsMarket: null, hotProducts: [], strengths: [], improvements: [] }
     }
 
     return new Response(JSON.stringify({ ok: true, analysis }), { headers: CORS })
