@@ -45,3 +45,13 @@
   from = "/inventory"
   to = "/inventory/"
   status = 301
+
+[[redirects]]
+  from = "/deposits"
+  to = "/deposits/"
+  status = 301
+
+[[headers]]
+  for = "/deposits/*"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
