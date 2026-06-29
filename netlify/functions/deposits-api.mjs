@@ -9,11 +9,13 @@ export default async (req) => {
   const action = url.searchParams.get('action')
   const store = getStore('qbm-deposits')
 
+  const getDeposits = () =>
+    store.get('deposits', { type: 'json' }).then(d => Array.isArray(d) ? d : []).catch(() => [])
+
   try {
     if (req.method === 'GET') {
       if (action === 'list') {
-        const data = await store.get('deposits', { type: 'json' }).catch(() => [])
-        return new Response(JSON.stringify(Array.isArray(data) ? data : []), { headers: CORS })
+        return new Response(JSON.stringify(await getDeposits()), { headers: CORS })
       }
     }
 
@@ -21,7 +23,7 @@ export default async (req) => {
       const body = await req.json()
 
       if (action === 'add') {
-        const deposits = await store.get('deposits', { type: 'json' }).catch(() => [])
+        const deposits = await getDeposits()
         const deposit = {
           id: `dep_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
           ...body,
@@ -35,7 +37,7 @@ export default async (req) => {
       if (action === 'bulk-add') {
         const items = Array.isArray(body) ? body : body.items
         if (!items || !items.length) return new Response(JSON.stringify({ ok: true, added: 0 }), { headers: CORS })
-        const deposits = await store.get('deposits', { type: 'json' }).catch(() => [])
+        const deposits = await getDeposits()
         const now = new Date().toISOString()
         const added = []
         items.forEach((item, i) => {
@@ -54,7 +56,7 @@ export default async (req) => {
       if (action === 'update') {
         const { id, ...fields } = body
         if (!id) return new Response(JSON.stringify({ error: 'Missing id' }), { headers: CORS, status: 400 })
-        const deposits = await store.get('deposits', { type: 'json' }).catch(() => [])
+        const deposits = await getDeposits()
         const idx = deposits.findIndex(d => d.id === id)
         if (idx === -1) return new Response(JSON.stringify({ error: 'Not found' }), { headers: CORS, status: 404 })
         deposits[idx] = { ...deposits[idx], ...fields, updatedAt: new Date().toISOString() }
@@ -64,7 +66,7 @@ export default async (req) => {
 
       if (action === 'collect') {
         const { id } = body
-        const deposits = await store.get('deposits', { type: 'json' }).catch(() => [])
+        const deposits = await getDeposits()
         const idx = deposits.findIndex(d => d.id === id)
         if (idx === -1) return new Response(JSON.stringify({ error: 'Not found' }), { headers: CORS, status: 404 })
         deposits[idx].status = 'collected'
@@ -75,7 +77,7 @@ export default async (req) => {
 
       if (action === 'delete') {
         const { id } = body
-        const deposits = await store.get('deposits', { type: 'json' }).catch(() => [])
+        const deposits = await getDeposits()
         await store.setJSON('deposits', deposits.filter(d => d.id !== id))
         return new Response(JSON.stringify({ ok: true }), { headers: CORS })
       }
