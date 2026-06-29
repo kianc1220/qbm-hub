@@ -1060,6 +1060,18 @@ async function loadData() {
 
   renderAll();
 
+  // Auto-dedup on load — silently removes duplicates from previous bad syncs
+  fetch(API + '?action=dedup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) })
+    .then(r => r.json()).then(d => {
+      if (d.ok && d.removed > 0) {
+        // Reload reviews with the cleaned data
+        fetch(API + '?action=list').then(r => r.json()).then(data => {
+          reviews = Array.isArray(data) ? data : [];
+          renderAll();
+        }).catch(() => {});
+      }
+    }).catch(() => {});
+
   // Show last synced time
   fetchWithTimeout(API + '?action=last-synced').then(r => r.json()).then(d => {
     const el = document.getElementById('last-synced-label');

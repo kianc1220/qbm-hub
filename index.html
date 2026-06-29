@@ -10,6 +10,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="QBM Hub" />
+  <link rel="icon" type="image/svg+xml" href="/icon.svg" />
   <link rel="apple-touch-icon" href="/icon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -79,15 +80,15 @@
 
     .nav-logo {
       width: 32px; height: 32px;
-      background: linear-gradient(135deg, #2563eb, #3b82f6);
       border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
       box-shadow: 0 0 16px rgba(37,99,235,0.4);
     }
-    .nav-logo svg { width: 18px; height: 18px; fill: #fff; }
+    .nav-logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
     .nav-name {
-      font-size: 14px;
+      font-size: 16px;
       font-weight: 700;
       color: var(--text);
       letter-spacing: -0.01em;
@@ -320,6 +321,11 @@
       color: #f59e0b;
       border: 1px solid rgba(245,158,11,0.2);
     }
+    .badge-beta {
+      background: rgba(139,92,246,0.12);
+      color: #a78bfa;
+      border: 1px solid rgba(139,92,246,0.28);
+    }
 
     .tool-card-name {
       font-size: 18px;
@@ -414,11 +420,11 @@
     }
     .footer-logo {
       width: 26px; height: 26px;
-      background: var(--blue);
       border-radius: 6px;
-      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
     }
-    .footer-logo svg { width: 15px; height: 15px; fill: #fff; }
+    .footer-logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .footer-text strong { display: block; font-size: 12px; font-weight: 700; }
     .footer-text span { font-size: 11px; color: var(--muted); }
 
@@ -455,22 +461,208 @@
       .footer-text strong { font-size: 11px; }
       .footer-text span { font-size: 10px; }
     }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(22px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.94); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    /* Hero entrance */
+    .hero-eyebrow  { animation: fadeSlideUp 0.55s cubic-bezier(.22,1,.36,1) 0.05s both; }
+    .hero-greeting { animation: fadeSlideUp 0.55s cubic-bezier(.22,1,.36,1) 0.12s both; }
+    .hero-title    { animation: fadeSlideUp 0.65s cubic-bezier(.22,1,.36,1) 0.18s both; }
+    .hero-clock    { animation: fadeSlideUp 0.55s cubic-bezier(.22,1,.36,1) 0.28s both; }
+
+    /* Tool cards — revealed by IntersectionObserver */
+    .tool-card { opacity: 0; transform: translateY(20px); }
+    .tool-card.anim-in { animation: fadeSlideUp 0.55s cubic-bezier(.22,1,.36,1) both; }
+
+    /* Coming strip */
+    .coming-strip { opacity: 0; }
+    .coming-strip.anim-in { animation: fadeIn 0.6s ease 0.1s both; }
+
+    /* Section label */
+    .section-label { opacity: 0; }
+    .section-label.anim-in { animation: fadeSlideUp 0.5s ease both; }
+
+    /* ── Offline screen ── */
+    #offline-screen {
+      position: fixed; inset: 0; z-index: 9997; display: none;
+      background: linear-gradient(160deg, #080d1a 0%, #0a1628 45%, #0d1f3c 100%);
+      flex-direction: column; align-items: center; justify-content: center;
+    }
+    #offline-screen .og { position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px); background-size: 40px 40px; }
+    #offline-screen .oc { text-align: center; padding: 0 2rem; position: relative; }
+    #offline-screen .oi { font-size: 52px; margin-bottom: 20px; }
+    #offline-screen h2 { color: #fff; font-size: 22px; font-weight: 800; margin: 0 0 10px; letter-spacing: -.02em; }
+    #offline-screen p { color: rgba(255,255,255,.45); font-size: 14px; margin: 0 0 32px; line-height: 1.6; }
+    #offline-screen .ob { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: 10px 20px; }
+    #offline-screen .od { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; }
+    #offline-screen .os { color: rgba(255,255,255,.5); font-size: 12px; font-weight: 600; letter-spacing: .05em; }
+
+    /* ── Hub splash ── */
+    #hub-splash {
+      position: fixed; inset: 0; z-index: 9998;
+      background: #080d1a;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      transition: opacity 0.5s ease;
+    }
+    #hub-splash.fade { opacity: 0; pointer-events: none; }
+    #hub-splash .hs-grid {
+      position: absolute; inset: 0;
+      background-image: linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),
+                        linear-gradient(90deg,rgba(255,255,255,.022) 1px,transparent 1px);
+      background-size: 38px 38px;
+    }
+    #hub-splash .hs-body {
+      position: relative; text-align: center; padding: 0 2rem;
+      animation: hsPop .55s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    #hub-splash .hs-eyebrow {
+      color: #e6a014; font-size: 10px; font-weight: 800;
+      letter-spacing: .32em; text-transform: uppercase; margin: 0 0 20px;
+    }
+    #hub-splash .hs-greeting {
+      color: #fff; font-size: 28px; font-weight: 800;
+      letter-spacing: -.03em; line-height: 1.1; margin: 0 0 8px;
+    }
+    #hub-splash .hs-date {
+      color: rgba(255,255,255,.32); font-size: 12px;
+      letter-spacing: .06em; margin: 0 0 28px;
+    }
+    #hub-splash .hs-scanwrap {
+      width: 160px; height: 1px; background: rgba(255,255,255,.08);
+      margin: 0 auto 0;
+      position: relative; overflow: hidden;
+    }
+    #hub-splash .hs-scan {
+      position: absolute; top: 0; left: 0;
+      width: 60px; height: 100%; background: #3b82f6;
+      animation: hsScan 1.6s ease-in-out infinite;
+    }
+    /* Status line — bottom of screen */
+    #hub-splash .hs-status {
+      position: absolute; bottom: 40px; left: 0; right: 0;
+      text-align: center;
+      font-size: 11px; font-weight: 600; letter-spacing: .1em;
+      text-transform: uppercase; color: rgba(255,255,255,.22);
+      transition: opacity .3s ease;
+    }
+    #hub-splash .hs-status.changing { opacity: 0; }
+    @keyframes hsPop {
+      from { transform: scale(.88) translateY(12px); opacity: 0; }
+      to   { transform: scale(1)   translateY(0);    opacity: 1; }
+    }
+    @keyframes hsScan {
+      0%   { transform: translateX(-80px); }
+      50%  { transform: translateX(160px); }
+      100% { transform: translateX(-80px); }
+    }
   </style>
 </head>
 <body>
+
+  <!-- Offline screen -->
+  <div id="offline-screen">
+    <div class="og"></div>
+    <div class="oc">
+      <div class="oi">📡</div>
+      <h2>You are offline</h2>
+      <p>Connect to the internet to access QBM Operator Hub.<br>This page will reload automatically when you're back online.</p>
+      <div class="ob"><div class="od"></div><span class="os">NO CONNECTION</span></div>
+    </div>
+  </div>
+  <script>
+    (function(){
+      function showOff(){ document.getElementById('offline-screen').style.display='flex'; }
+      function hideOff(){ document.getElementById('offline-screen').style.display='none'; }
+      if(!navigator.onLine) showOff();
+      window.addEventListener('offline', showOff);
+      window.addEventListener('online', hideOff);
+    })();
+  </script>
+
+  <!-- Hub splash -->
+  <div id="hub-splash">
+    <div class="hs-grid"></div>
+    <div class="hs-body">
+      <p class="hs-eyebrow">DJI Queensbay Mall</p>
+      <p class="hs-greeting" id="hs-greet">Good evening, team.</p>
+      <p class="hs-date" id="hs-date"></p>
+      <div class="hs-scanwrap"><div class="hs-scan"></div></div>
+    </div>
+    <div class="hs-status" id="hs-status">Initialising systems…</div>
+  </div>
+  <script>
+    (function () {
+      var h = new Date().getHours();
+      document.getElementById('hs-greet').textContent =
+        h < 12 ? 'Good morning, team.' :
+        h < 17 ? 'Good afternoon, team.' : 'Good evening, team.';
+
+      var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+      var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      var now = new Date();
+      document.getElementById('hs-date').textContent =
+        days[now.getDay()] + ', ' + now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear();
+
+      var messages = [
+        'Initialising systems…',
+        'Loading operator tools…',
+        'Connecting to databases…',
+        'Fetching workshop data…',
+        'Syncing store analytics…',
+        'Almost ready…',
+      ];
+      var idx = 0;
+      var statusEl = document.getElementById('hs-status');
+      var msgInterval = setInterval(function () {
+        statusEl.classList.add('changing');
+        setTimeout(function () {
+          idx = (idx + 1) % messages.length;
+          statusEl.textContent = messages[idx];
+          statusEl.classList.remove('changing');
+        }, 300);
+      }, 900);
+
+      var start = Date.now();
+      function dismiss() {
+        clearInterval(msgInterval);
+        var elapsed = Date.now() - start;
+        var wait = Math.max(0, 800 - elapsed);
+        setTimeout(function () {
+          var s = document.getElementById('hub-splash');
+          if (s) { s.classList.add('fade'); setTimeout(function () { s.remove(); }, 500); }
+        }, wait);
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', dismiss);
+      } else {
+        dismiss();
+      }
+    })();
+  </script>
 
   <!-- NAV -->
   <nav>
     <a href="/" class="nav-brand">
       <div class="nav-logo">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M3 8h3.5L8 6H5L3 8zm13-2l1.5 2H21l-2-2h-3zM8 18l-1.5-2H3l2 2h3zm8 0h3l2-2h-3.5L16 18zM12 9a3 3 0 100 6 3 3 0 000-6z"/>
-        </svg>
+        <img src="/icon.svg" alt="QBM" />
       </div>
-      <span class="nav-name">DJI <span>QBM</span></span>
+      <span class="nav-name">DJI <span>QBM</span> Operator Hub</span>
     </a>
     <div class="nav-right">
-      <span class="nav-pill">Operator Hub</span>
+
       <a href="/workshop/" class="nav-btn" style="background:rgba(37,99,235,0.12);color:var(--blue-bright);border:1px solid rgba(37,99,235,0.28);">
         🎓 Workshop
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
@@ -515,7 +707,7 @@
       <a href="/workshop/" class="tool-card">
         <div class="tool-card-top">
           <div class="tool-card-icon">🎓</div>
-          <span class="badge badge-new">★ New</span>
+          <span class="badge badge-live">● Live</span>
         </div>
         <div class="tool-card-name">Workshop Hub</div>
         <div class="tool-card-desc">Create and manage DJI workshop registrations. Auto-generate Google Forms from your event poster with AI.</div>
@@ -527,13 +719,43 @@
         </div>
       </a>
 
+      <a href="/reviews/" class="tool-card">
+        <div class="tool-card-top">
+          <div class="tool-card-icon">⭐</div>
+          <span class="badge badge-beta">● Beta</span>
+        </div>
+        <div class="tool-card-name">Review Tracker</div>
+        <div class="tool-card-desc">Track Google reviews, attribute them to your salesmen, and monitor each team member's monthly review targets.</div>
+        <div class="tool-card-footer">
+          <div class="tool-launch-btn">
+            Open Review Tracker
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
+        </div>
+      </a>
+
+      <a href="/inventory/" class="tool-card">
+        <div class="tool-card-top">
+          <div class="tool-card-icon">📦</div>
+          <span class="badge badge-beta">● Beta</span>
+        </div>
+        <div class="tool-card-name">Inventory Tracker</div>
+        <div class="tool-card-desc">Monitor DJI product stock levels, get low-stock alerts, and import or export inventory via CSV.</div>
+        <div class="tool-card-footer">
+          <div class="tool-launch-btn">
+            Open Inventory Tracker
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
+        </div>
+      </a>
+
     </div>
 
     <div class="coming-strip">
       <div class="coming-dots">
         <span></span><span></span><span></span>
       </div>
-      <div class="coming-text">More tools on the way — Inventory Tracker, Promo Calendar &amp; more</div>
+      <div class="coming-text">More tools on the way — Promo Calendar, Daily Sales Summary &amp; more</div>
       <span class="badge badge-soon">Coming Soon</span>
     </div>
   </div>
@@ -542,9 +764,7 @@
   <footer>
     <div class="footer-brand">
       <div class="footer-logo">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M3 8h3.5L8 6H5L3 8zm13-2l1.5 2H21l-2-2h-3zM8 18l-1.5-2H3l2 2h3zm8 0h3l2-2h-3.5L16 18zM12 9a3 3 0 100 6 3 3 0 000-6z"/>
-        </svg>
+        <img src="/icon.svg" alt="QBM" />
       </div>
       <div class="footer-text">
         <strong>DJI Queensbay Mall</strong>
@@ -553,11 +773,20 @@
     </div>
     <div class="footer-copy">
       <strong>© 2026 DJI Queensbay · All rights reserved</strong><br/>
-      <span>Built by <a href="https://github.com/kianc1220" target="_blank" rel="noreferrer" style="color:var(--muted2);text-decoration:none;">kianc1220</a></span>
+      <span>Built by <a href="https://github.com/kianc1220" target="_blank" rel="noreferrer" style="color:var(--muted2);text-decoration:none;">kianc1220</a>
+        &nbsp;·&nbsp; Last deployed: <span id="last-deploy" style="color:var(--muted2);">–</span>
+      </span>
     </div>
   </footer>
 
   <script>
+    // Kill stale service workers so users always get fresh HTML
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(regs => {
+        regs.forEach(r => r.unregister());
+      });
+    }
+
     // Greeting based on hour
     const h = new Date().getHours();
     document.getElementById('greeting').textContent =
@@ -580,6 +809,41 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'))
     }
+
+    // Card reveal — double rAF ensures layout is complete before observing
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          const el = entry.target;
+          const siblings = [...el.parentElement.children].filter(c => c.classList.contains('tool-card'));
+          const idx = siblings.indexOf(el);
+          el.style.animationDelay = `${idx * 0.08}s`;
+          el.classList.add('anim-in');
+          revealObserver.unobserve(el);
+        });
+      }, { threshold: 0 });
+      document.querySelectorAll('.tool-card').forEach(c => revealObserver.observe(c));
+    }));
+
+    const stripObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('anim-in');
+          stripObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.3 });
+    document.querySelectorAll('.coming-strip, .section-label').forEach(el => stripObserver.observe(el));
+
+    // Last deployed timestamp
+    fetch('/.netlify/functions/site-info').then(r => r.json()).then(d => {
+      if (!d.deployedAt) return;
+      const dt = new Date(d.deployedAt);
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const str = `${dt.getDate()} ${months[dt.getMonth()]} ${dt.getFullYear()}, ${dt.toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit', hour12: true })}`;
+      document.getElementById('last-deploy').textContent = str;
+    }).catch(() => {});
   </script>
 
 </body>

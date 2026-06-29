@@ -1,4 +1,4 @@
-const CACHE = 'qbm-hub-v1'
+const CACHE = 'qbm-hub-v3'
 const SHELL = ['/', '/index.html', '/icon.svg', '/manifest.json']
 
 self.addEventListener('install', e => {
@@ -16,11 +16,25 @@ self.addEventListener('activate', e => {
 })
 
 self.addEventListener('fetch', e => {
-  // Don't intercept Netlify function calls — always go to network
+  // Never intercept Netlify function calls
   if (e.request.url.includes('/.netlify/functions/')) return
-
   if (e.request.method !== 'GET') return
 
+  const url = new URL(e.request.url)
+  const isHTML = url.pathname.endsWith('.html') || url.pathname.endsWith('/') || !url.pathname.includes('.')
+
+  // HTML → network-first: always fetch fresh, fall back to cache if offline
+  if (isHTML) {
+    e.respondWith(
+      fetch(e.request).then(res => {
+        if (res.ok) caches.open(CACHE).then(c => c.put(e.request, res.clone()))
+        return res
+      }).catch(() => caches.match(e.request))
+    )
+    return
+  }
+
+  // Assets (JS, CSS, images) → stale-while-revalidate
   e.respondWith(
     caches.match(e.request).then(cached => {
       const fresh = fetch(e.request).then(res => {
