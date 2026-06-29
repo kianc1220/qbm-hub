@@ -53,6 +53,32 @@ export default async (req) => {
         return new Response(JSON.stringify({ ok: true, added: added.length, deposits: added }), { headers: CORS })
       }
 
+      // Sync statuses by invoiceNo: [{invoiceNo, status, customer, phone, salesman, product}]
+      if (action === 'sync-statuses') {
+        const updates = Array.isArray(body) ? body : []
+        if (!updates.length) return new Response(JSON.stringify({ ok: true, updated: 0 }), { headers: CORS })
+        const byInv = new Map(updates.map(u => [u.invoiceNo, u]))
+        const deposits = await getDeposits()
+        let updated = 0
+        for (const d of deposits) {
+          if (!d.invoiceNo || !byInv.has(d.invoiceNo)) continue
+          const u = byInv.get(d.invoiceNo)
+          if (d.status === 'cancelled') continue // never override cancellations
+          if (d.status !== u.status) {
+            d.status = u.status
+            if (u.status === 'collected' && !d.collectedAt) d.collectedAt = new Date().toISOString()
+            updated++
+          }
+          // Also patch any fields that were blank due to old column-name bug
+          if (!d.customer && u.customer) { d.customer = u.customer; updated++ }
+          if (!d.phone && u.phone) { d.phone = u.phone; updated++ }
+          if (!d.salesman && u.salesman) { d.salesman = u.salesman; updated++ }
+          if (!d.product && u.product) { d.product = u.product; updated++ }
+        }
+        if (updated) await store.setJSON('deposits', deposits)
+        return new Response(JSON.stringify({ ok: true, updated }), { headers: CORS })
+      }
+
       if (action === 'update') {
         const { id, ...fields } = body
         if (!id) return new Response(JSON.stringify({ error: 'Missing id' }), { headers: CORS, status: 400 })
