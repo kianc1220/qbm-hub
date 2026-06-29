@@ -735,22 +735,29 @@ function splitCSVLine(line) {
 async function confirmImport() {
   const btn = document.getElementById('import-confirm-btn');
   btn.disabled = true; btn.textContent = 'Importing…';
-  let imported = 0;
+  let imported = 0, failed = 0, lastErr = '';
   for (const d of pendingImport) {
     try {
       const body = { type: 'preorder', status: 'pending', ...d };
       const res = await fetch(API + '?action=add', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
       });
+      if (!res.ok) { failed++; lastErr = `Server error ${res.status}`; continue; }
       const data = await res.json();
       if (data.ok) { deposits.unshift(data.deposit || body); imported++; }
-    } catch {}
+      else { failed++; lastErr = data.error || 'Unknown error'; }
+    } catch (e) { failed++; lastErr = e.message || 'Network error'; }
   }
   closeImport();
   renderAll();
-  setBadge(`✓ Imported ${imported} deposit${imported!==1?'s':''}`, 'ok');
-  showToast(`Imported ${imported} deposit${imported!==1?'s':''}!`, 'success');
   btn.disabled = false; btn.textContent = 'Import';
+  if (imported > 0) {
+    setBadge(`✓ ${imported} imported`, 'ok');
+    showToast(`Imported ${imported} deposit${imported!==1?'s':''}!`, 'success');
+  } else {
+    setBadge(`Failed: ${lastErr}`, 'err');
+    showToast(`Import failed — ${lastErr}`, 'error');
+  }
 }
 
 function closeImport() {
