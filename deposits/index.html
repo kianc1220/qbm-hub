@@ -419,6 +419,7 @@ let editingId = null;
 let modalType = 'preorder';
 let pendingImport = [];
 let pendingCancel = [];
+let pendingCollect = [];
 
 /* ── INIT ── */
 window.addEventListener('DOMContentLoaded', async () => {
@@ -654,12 +655,26 @@ function processCSV(file) {
       deposits.filter(d => d.invoiceNo).forEach(d => { existingMap[d.invoiceNo] = d; });
       const toImport = [];
       const toSkip = [];
-      const toCancel = []; // existing records voided in new CSV
+      const toCancel = [];  // existing records now Void in CSV
+      const toCollect = []; // existing pending records now showing as collected
 
-      // Mark existing deposits as cancelled if CSV now shows Void
+      // Update existing deposits based on new CSV data
       deposits.forEach(d => {
-        if (d.invoiceNo && csvStatusMap[d.invoiceNo] === 'void' && d.status !== 'cancelled') {
+        if (!d.invoiceNo) return;
+        // Newly voided → cancel
+        if (csvStatusMap[d.invoiceNo] === 'void' && d.status !== 'cancelled') {
           toCancel.push(d.id);
+          return;
+        }
+        // Was pending, now collected (deposit applied to a sale) → mark collected
+        if (d.status === 'pending') {
+          const r = depositRows.find(row => getInv(row) === d.invoiceNo);
+          if (r) {
+            const amount = parseFloat((r['Invoice Amount'] || '0').replace(/,/g,'')) || 0;
+            const customer = (r['Customer name'] || r['Customer Name'] || '').trim();
+            const key = `${customer.toLowerCase().replace(/\s+/g,' ')}::${amount}`;
+            if (collectedKeys.has(key)) toCollect.push(d.id);
+          }
         }
       });
 
@@ -704,22 +719,25 @@ function processCSV(file) {
         });
       });
 
-      if (!toImport.length && !toCancel.length) {
-        setBadge(`All ${toSkip.length} already imported`, 'info');
+      if (!toImport.length && !toCancel.length && !toCollect.length) {
+        setBadge(`All ${toSkip.length} up to date`, 'info');
         return;
       }
 
       pendingImport = toImport;
       pendingCancel = toCancel;
+      pendingCollect = toCollect;
       const titleParts = [];
       if (toImport.length) titleParts.push(`${toImport.length} new`);
+      if (toCollect.length) titleParts.push(`${toCollect.length} now collected`);
       if (toCancel.length) titleParts.push(`${toCancel.length} to cancel`);
       document.getElementById('import-title').textContent = `Sync: ${titleParts.join(', ')}`;
       const newCollected = toImport.filter(d => d.status === 'collected').length;
       const newPending   = toImport.filter(d => d.status === 'pending').length;
       const summaryParts = [`Found ${allDRows.length} D-invoices.`];
       if (toImport.length) summaryParts.push(`Importing ${toImport.length} new (${newPending} pending, ${newCollected} collected).`);
-      if (toSkip.length) summaryParts.push(`${toSkip.length} already exist.`);
+      if (toCollect.length) summaryParts.push(`${toCollect.length} existing now collected.`);
+      if (toSkip.length) summaryParts.push(`${toSkip.length} already up to date.`);
       if (toCancel.length) summaryParts.push(`${toCancel.length} now Void → will cancel.`);
       document.getElementById('import-summary').textContent = summaryParts.join(' ');
       document.getElementById('import-list').innerHTML = [
@@ -823,7 +841,22 @@ async function confirmImport() {
       imported = data.added || 0;
     }
 
-    // Cancel voided deposits one by one (usually few)
+    // Mark existing pending deposits as collected
+    let nowCollected = 0;
+    for (const id of pendingCollect) {
+      const res = await fetch(API + '?action=collect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      if (res.ok) {
+        const dep = deposits.find(d => d.id === id);
+        if (dep) { dep.status = 'collected'; dep.collectedAt = new Date().toISOString(); }
+        nowCollected++;
+      }
+    }
+
+    // Cancel voided deposits
     for (const id of pendingCancel) {
       const res = await fetch(API + '?action=update', {
         method: 'POST',
@@ -841,6 +874,7 @@ async function confirmImport() {
     renderAll();
     const parts = [];
     if (imported) parts.push(`${imported} imported`);
+    if (nowCollected) parts.push(`${nowCollected} marked collected`);
     if (cancelled) parts.push(`${cancelled} cancelled`);
     setBadge(`✓ ${parts.join(', ')}`, 'ok');
     showToast(parts.join(', ') + '!', 'success');
@@ -855,6 +889,7 @@ function closeImport() {
   document.getElementById('import-overlay').style.display = 'none';
   pendingImport = [];
   pendingCancel = [];
+  pendingCollect = [];
 }
 
 function setBadge(text, type) {
