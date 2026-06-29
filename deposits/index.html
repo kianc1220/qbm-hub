@@ -155,12 +155,13 @@
     .btn-secondary:hover { color: var(--text); border-color: var(--border2); }
 
     /* IMPORT PREVIEW MODAL */
-    .import-list { max-height: 300px; overflow-y: auto; margin-bottom: 1rem; }
-    .import-row { display: flex; align-items: center; gap: 10px; padding: 0.55rem 0; border-bottom: 1px solid var(--border); font-size: 0.83rem; }
-    .import-row:last-child { border-bottom: none; }
-    .import-inv { font-family: monospace; font-weight: 600; color: var(--yellow); min-width: 80px; }
-    .import-prod { flex: 1; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .import-amt { color: var(--green); font-weight: 600; min-width: 80px; text-align: right; }
+    .import-list { max-height: 360px; overflow-y: auto; margin-bottom: 1rem; display: flex; flex-direction: column; gap: 6px; }
+    .import-row { background: var(--bg); border: 1px solid var(--border); border-radius: 9px; padding: 0.65rem 0.85rem; }
+    .import-row-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 3px; }
+    .import-inv { font-family: monospace; font-weight: 600; color: var(--yellow); font-size: 0.82rem; }
+    .import-amt { color: var(--green); font-weight: 700; font-size: 0.88rem; }
+    .import-customer { font-size: 0.83rem; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+    .import-prod { font-size: 0.78rem; color: var(--text-muted); }
     .import-skip { color: var(--text-muted); font-size: 0.75rem; font-style: italic; }
 
     #toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--surface2); border: 1px solid var(--border2); border-radius: 10px; padding: 0.65rem 1.25rem; font-size: 0.85rem; font-weight: 500; z-index: 999; transition: transform 0.3s cubic-bezier(.22,1,.36,1); white-space: nowrap; }
@@ -670,9 +671,12 @@ function processCSV(file) {
         (toSkip.length ? `, skipping ${toSkip.length} already exist.` : '.');
       document.getElementById('import-list').innerHTML = toImport.map(d=>`
         <div class="import-row">
-          <span class="import-inv">${esc(d.invoiceNo)}</span>
-          <span class="import-prod">${esc(d.product||'–')}</span>
-          <span class="import-amt">${d.depositPaid > 0 ? 'RM '+fmtNum(d.depositPaid) : '–'}</span>
+          <div class="import-row-top">
+            <span class="import-inv">${esc(d.invoiceNo)}</span>
+            <span class="import-amt">${d.depositPaid > 0 ? 'RM '+fmtNum(d.depositPaid) : '–'}</span>
+          </div>
+          <div class="import-customer">${esc(d.customer||'–')}</div>
+          <div class="import-prod">${esc(d.product||'–')}</div>
         </div>`).join('');
       document.getElementById('import-overlay').style.display = 'flex';
     } catch(err) {
