@@ -259,6 +259,13 @@
       gap: 16px;
       margin-bottom: 16px;
     }
+    /* Centre a lone last card in a 2-col grid */
+    .tools-grid > .tool-card:last-child:nth-child(odd) {
+      grid-column: 1 / -1;
+      max-width: calc(50% - 8px);
+      margin: 0 auto;
+      width: 100%;
+    }
 
     .tool-card {
       position: relative;

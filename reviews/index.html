@@ -664,26 +664,31 @@
     .trend-svg { width: 100%; height: 88px; overflow: hidden; display: block; }
 
     /* ── SPINNER ── */
+    /* ── SPLASH ── */
     #loading-screen {
-      position: fixed;
-      inset: 0;
-      z-index: 1000;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 16px;
-      background: #080d1a;
+      position: fixed; inset: 0; z-index: 9999;
+      background: linear-gradient(160deg, #080d1a 0%, #0a1628 45%, #0d1f3c 100%);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      transition: opacity 0.4s ease;
     }
-    .spinner {
-      width: 38px; height: 38px;
-      border: 3px solid rgba(59,130,246,0.15);
-      border-top-color: var(--blue);
-      border-radius: 50%;
-      animation: spin 0.75s linear infinite;
+    #loading-screen.hiding { opacity: 0; pointer-events: none; }
+    #loading-screen .sp-grid {
+      position: absolute; inset: 0; pointer-events: none;
+      background-image: linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);
+      background-size: 40px 40px;
     }
+    #loading-screen .sp-body { text-align: center; padding: 0 2rem; position: relative; animation: splashPop .55s cubic-bezier(.34,1.56,.64,1); }
+    #loading-screen .sp-eyebrow { color: #e6a014; font-size: 10px; font-weight: 800; letter-spacing: .35em; text-transform: uppercase; margin: 0 0 20px; }
+    #loading-screen .sp-icon { font-size: 56px; line-height: 1; margin-bottom: 16px; }
+    #loading-screen h1 { color: #fff; font-size: 32px; font-weight: 800; letter-spacing: -.03em; margin: 0 0 6px; line-height: 1.1; }
+    #loading-screen .sp-sub { color: rgba(255,255,255,.4); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; margin: 0 0 40px; }
+    #loading-screen .sp-dots { display: flex; gap: 8px; justify-content: center; }
+    #loading-screen .sp-dots span { width: 7px; height: 7px; border-radius: 50%; background: #3b82f6; animation: splashDot 1.2s ease-in-out infinite; }
+    #loading-screen .sp-dots span:nth-child(2) { animation-delay: .2s; }
+    #loading-screen .sp-dots span:nth-child(3) { animation-delay: .4s; }
+    @keyframes splashPop { from { transform: scale(.82) translateY(10px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+    @keyframes splashDot { 0%,80%,100% { opacity: .2; transform: scale(.8); } 40% { opacity: 1; transform: scale(1); } }
     @keyframes spin { to { transform: rotate(360deg); } }
-    #loading-screen p { font-size: 14px; color: var(--muted); }
 
     /* ── ANIMATIONS ── */
     @keyframes fadeSlideUp {
@@ -831,8 +836,14 @@
 
 <!-- Loading -->
 <div id="loading-screen">
-  <div class="spinner"></div>
-  <p>Loading reviews…</p>
+  <div class="sp-grid"></div>
+  <div class="sp-body">
+    <p class="sp-eyebrow">DJI Queensbay Mall</p>
+    <div class="sp-icon">⭐</div>
+    <h1>Review Tracker</h1>
+    <p class="sp-sub">Operator Hub · Google Reviews</p>
+    <div class="sp-dots"><span></span><span></span><span></span></div>
+  </div>
 </div>
 
 <!-- Offline -->
@@ -1013,16 +1024,16 @@ const API = '/.netlify/functions/reviews-api';
 /* ───────────────────────────────────────────
    INIT
 ─────────────────────────────────────────── */
+function hideSplash() {
+  const ls = document.getElementById('loading-screen');
+  if (!ls || ls.classList.contains('hiding')) return;
+  ls.classList.add('hiding');
+  document.getElementById('app').style.display = 'block';
+  setTimeout(() => ls.style.display = 'none', 400);
+}
+
 window.addEventListener('DOMContentLoaded', () => {
-  // Hard fallback: if still loading after 10s, force-show app
-  setTimeout(() => {
-    const ls = document.getElementById('loading-screen');
-    if (ls && ls.style.display !== 'none') {
-      ls.style.display = 'none';
-      document.getElementById('app').style.display = 'block';
-      renderAll();
-    }
-  }, 10000);
+  setTimeout(() => hideSplash(), 10000); // hard fallback
   loadData();
 });
 
@@ -1055,8 +1066,7 @@ async function loadData() {
     // offline or function not deployed — use empty state
   }
 
-  document.getElementById('loading-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
+  hideSplash();
 
   renderAll();
 
