@@ -1,4 +1,4 @@
-const CACHE = 'qbm-hub-v3'
+const CACHE = 'qbm-hub-v4'
 const SHELL = ['/', '/index.html', '/icon.svg', '/manifest.json']
 
 self.addEventListener('install', e => {

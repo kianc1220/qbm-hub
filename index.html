@@ -795,10 +795,13 @@
   </footer>
 
   <script>
-    // Kill stale service workers so users always get fresh HTML
+    // Kill stale service workers and reload once to get fresh HTML
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(regs => {
-        regs.forEach(r => r.unregister());
+        if (regs.length && !sessionStorage.getItem('sw-cleared')) {
+          sessionStorage.setItem('sw-cleared', '1');
+          Promise.all(regs.map(r => r.unregister())).then(() => location.reload());
+        }
       });
     }
 
