@@ -1,0 +1,2102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reviews Tracker · DJI QBM</title>
+  <meta name="description" content="Google Review Tracker for DJI Queensbay Mall store operators." />
+  <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue: #3b82f6;
+      --gold: #e6a014;
+      --green: #10b981;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --text: #f1f5f9;
+      --muted: rgba(255,255,255,0.45);
+      --border: rgba(255,255,255,0.08);
+      --card-bg: rgba(255,255,255,0.04);
+      --card-bg-hover: rgba(255,255,255,0.07);
+      --surface2: rgba(255,255,255,0.07);
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: linear-gradient(160deg, #080d1a 0%, #0a1628 45%, #0d1f3c 100%) fixed;
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px);
+      background-size: 52px 52px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.5rem;
+      height: 56px;
+      background: rgba(8,13,26,0.88);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-back {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.15s;
+      white-space: nowrap;
+    }
+    .nav-back:hover { color: var(--text); }
+
+    .nav-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+    .nav-title .star-icon { color: var(--gold); font-size: 17px; }
+
+    .nav-badge {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--muted);
+      background: rgba(255,255,255,0.07);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3px 10px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    /* ── LAYOUT ── */
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 72px 1.25rem 3rem;
+    }
+
+    /* ── TABS ── */
+    .tabs {
+      display: flex;
+      gap: 2px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 1.5rem;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+
+    .tab-btn {
+      flex: 1;
+      min-width: 90px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      background: none;
+      border: none;
+      border-radius: 9px;
+      cursor: pointer;
+      transition: all 0.18s;
+      white-space: nowrap;
+      text-align: center;
+    }
+    .tab-btn:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+    .tab-btn.active {
+      color: var(--text);
+      background: rgba(59,130,246,0.18);
+      font-weight: 600;
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.25rem;
+    }
+    .card + .card { margin-top: 1rem; }
+
+    /* ── STAT GRID ── */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.1rem 1.25rem;
+    }
+    .stat-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+    .stat-value {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.1;
+    }
+    .stat-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    /* ── STARS ── */
+    .stars {
+      display: inline-flex;
+      gap: 2px;
+    }
+    .stars .s { color: var(--gold); font-size: 14px; line-height: 1; }
+    .stars .s.empty { color: rgba(255,255,255,0.18); }
+
+    .stars-lg .s { font-size: 26px; }
+
+    /* ── RATING BAR ── */
+    .rating-bars { display: flex; flex-direction: column; gap: 8px; }
+    .rbar-row { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+    .rbar-label { color: var(--muted); min-width: 24px; text-align: right; }
+    .rbar-track {
+      flex: 1;
+      height: 8px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .rbar-fill {
+      height: 100%;
+      background: var(--gold);
+      border-radius: 99px;
+      transition: width 0.5s ease;
+    }
+    .rbar-count { min-width: 28px; color: var(--muted); font-size: 12px; }
+
+    /* ── SECTION HEADER ── */
+    .section-hdr {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 0.75rem;
+    }
+
+    /* ── REVIEW CARD ── */
+    .review-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1rem 1.1rem;
+      transition: border-color 0.15s;
+    }
+    .review-card + .review-card { margin-top: 10px; }
+    .review-card:hover { border-color: rgba(255,255,255,0.15); }
+
+    .review-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .review-avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      object-fit: cover; flex-shrink: 0;
+      border: 1px solid var(--border);
+    }
+    .review-avatar-placeholder {
+      width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+      background: var(--surface2); display: flex; align-items: center;
+      justify-content: center; font-size: 16px; color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    .review-user-info { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+    .review-user-text { min-width: 0; }
+    .review-name { font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .review-meta { font-size: 11px; color: var(--muted); margin-top: 1px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .local-guide-badge { background: rgba(59,130,246,0.15); color: #60a5fa; border-radius: 4px; padding: 1px 5px; font-size: 10px; font-weight: 600; letter-spacing: 0.03em; }
+    .review-date { font-size: 12px; color: var(--muted); flex-shrink: 0; }
+    .review-images { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0 4px; }
+    .review-img { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; }
+    .review-source-link { font-size: 11px; color: var(--muted); text-decoration: none; }
+    .review-source-link:hover { color: var(--blue); }
+
+    .review-text {
+      font-size: 13px;
+      color: rgba(255,255,255,0.75);
+      line-height: 1.55;
+      margin: 6px 0 8px;
+    }
+    .review-text.truncated {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .show-more-btn {
+      background: none;
+      border: none;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 0;
+      margin-bottom: 8px;
+    }
+    .show-more-btn:hover { color: #60a5fa; }
+
+    .review-footer {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .attr-label { font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+    .attr-select {
+      font-size: 12px;
+      font-family: inherit;
+      color: var(--text);
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 7px;
+      padding: 4px 8px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+      outline: none;
+    }
+    .attr-select:hover { border-color: rgba(255,255,255,0.25); }
+    .attr-select:focus { border-color: var(--blue); }
+
+    .qf-btn {
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+      color: var(--muted); border-radius: 7px; padding: 5px 11px; font-size: 12px;
+      font-weight: 600; cursor: pointer; font-family: inherit; transition: all .15s;
+    }
+    .qf-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+    .qf-btn.active { background: rgba(59,130,246,0.18); border-color: rgba(59,130,246,0.5); color: var(--blue); }
+
+    .delete-btn {
+      margin-left: auto;
+      background: none;
+      border: 1px solid rgba(239,68,68,0.25);
+      color: rgba(239,68,68,0.7);
+      border-radius: 7px;
+      padding: 4px 9px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .delete-btn:hover {
+      background: rgba(239,68,68,0.12);
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    .pin-inline {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+    }
+    .pin-inline input {
+      width: 90px;
+      font-size: 12px;
+      font-family: inherit;
+      color: var(--text);
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 7px;
+      padding: 4px 8px;
+      outline: none;
+      letter-spacing: 0.1em;
+    }
+    .pin-inline input:focus { border-color: var(--blue); }
+    .pin-inline button {
+      font-size: 12px;
+      font-family: inherit;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 7px;
+      border: 1px solid;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .pin-confirm-btn {
+      background: rgba(239,68,68,0.15);
+      border-color: rgba(239,68,68,0.4);
+      color: var(--red);
+    }
+    .pin-confirm-btn:hover { background: rgba(239,68,68,0.25); }
+    .pin-cancel-btn {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(255,255,255,0.12);
+      color: var(--muted);
+    }
+    .pin-cancel-btn:hover { background: rgba(255,255,255,0.1); }
+
+    /* ── LEADERBOARD ── */
+    .lb-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+    }
+    .lb-month {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .lb-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1rem 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 10px;
+      transition: border-color 0.15s;
+    }
+    .lb-card:hover { border-color: rgba(255,255,255,0.15); }
+
+    .lb-rank {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--muted);
+      min-width: 28px;
+      text-align: center;
+    }
+    .lb-rank.gold { color: var(--gold); }
+    .lb-rank.silver { color: #94a3b8; }
+    .lb-rank.bronze { color: #cd7c4a; }
+
+    .lb-info { flex: 1; min-width: 0; }
+    .lb-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 5px; }
+
+    .lb-progress-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .lb-track {
+      flex: 1;
+      height: 7px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .lb-fill {
+      height: 100%;
+      background: var(--blue);
+      border-radius: 99px;
+      transition: width 0.5s ease;
+    }
+    .lb-fill.exceeded { background: var(--gold); }
+    .lb-count { font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+    .lb-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+    .lb-badge.on-track { background: rgba(16,185,129,0.15); color: var(--green); }
+    .lb-badge.behind { background: rgba(245,158,11,0.15); color: var(--amber); }
+    .lb-badge.exceeded { background: rgba(230,160,20,0.15); color: var(--gold); }
+
+    .lb-unattr {
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+      padding: 1rem;
+      border-top: 1px solid var(--border);
+      margin-top: 0.5rem;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--muted);
+    }
+    .empty-state .empty-icon { font-size: 36px; margin-bottom: 12px; opacity: 0.6; }
+    .empty-state p { font-size: 14px; margin-bottom: 1rem; }
+    .empty-state a, .empty-state button {
+      font-size: 13px;
+      color: var(--blue);
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    /* ── ADD REVIEW FORM ── */
+    .form-group { margin-bottom: 1.1rem; }
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 7px;
+    }
+
+    .form-input {
+      width: 100%;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text);
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      padding: 10px 14px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .form-input:hover { border-color: rgba(255,255,255,0.22); }
+    .form-input:focus { border-color: var(--blue); }
+    .form-input::placeholder { color: rgba(255,255,255,0.25); }
+
+    textarea.form-input { resize: vertical; min-height: 90px; }
+
+    select.form-input {
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(255,255,255,0.4)' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 34px;
+    }
+    select.form-input option { background: #0d1f3c; color: var(--text); }
+
+    /* star picker */
+    .star-picker { display: flex; gap: 8px; }
+    .star-pick-btn {
+      background: none;
+      border: none;
+      font-size: 30px;
+      cursor: pointer;
+      color: rgba(255,255,255,0.18);
+      transition: color 0.12s, transform 0.1s;
+      line-height: 1;
+      padding: 2px;
+    }
+    .star-pick-btn.lit { color: var(--gold); }
+    .star-pick-btn:hover { transform: scale(1.15); }
+
+    .auto-detect-note {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 5px;
+    }
+
+    /* ── SUBMIT BTN ── */
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 11px 22px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.18s, box-shadow 0.18s;
+    }
+    .btn-primary:hover { background: #2563eb; box-shadow: 0 0 20px rgba(59,130,246,0.4); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.07);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 9px 18px;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.2); }
+
+    /* ── SETTINGS ── */
+    .pin-gate {
+      text-align: center;
+      padding: 2.5rem 1rem;
+    }
+    .pin-gate p {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 1.25rem;
+    }
+    .pin-gate-input {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .salesman-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .salesman-row .form-input { margin: 0; }
+    .salesman-name-input { flex: 1; }
+    .salesman-target-input { width: 90px; }
+    .sm-del-btn {
+      background: none;
+      border: 1px solid rgba(239,68,68,0.25);
+      color: rgba(239,68,68,0.6);
+      border-radius: 8px;
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 15px;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    .sm-del-btn:hover { background: rgba(239,68,68,0.12); border-color: var(--red); color: var(--red); }
+
+    .settings-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 1.5rem;
+    }
+
+    .lock-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 9px;
+      padding: 9px 16px;
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .lock-btn:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+
+    .name-highlight { background: rgba(59,130,246,0.2); color: #93c5fd; border-radius: 3px; padding: 0 2px; font-style: normal; }
+    .sentiment-tag { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px; letter-spacing: 0.04em; white-space: nowrap; }
+    .sentiment-pos { background: rgba(16,185,129,0.15); color: #34d399; }
+    .sentiment-neu { background: rgba(245,158,11,0.15); color: #f59e0b; }
+    .sentiment-crit { background: rgba(239,68,68,0.15); color: #f87171; }
+    .tab-badge { background: var(--red); color: #fff; font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 99px; margin-left: 4px; vertical-align: middle; display: inline-block; }
+    .product-tags { display: flex; gap: 5px; flex-wrap: wrap; margin: 4px 0; }
+    .product-tag { font-size: 10px; color: var(--muted); background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 1px 6px; }
+    .modal-overlay { position: fixed; inset: 0; z-index: 800; background: rgba(8,13,26,0.88); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: flex; align-items: flex-start; justify-content: center; padding: 80px 1rem 2rem; overflow-y: auto; }
+    .modal-box { background: #0b1930; border: 1px solid rgba(255,255,255,0.1); border-radius: 18px; padding: 1.5rem; max-width: 640px; width: 100%; position: relative; }
+    .modal-close { position: absolute; top: 14px; right: 16px; background: none; border: none; color: var(--muted); font-size: 22px; cursor: pointer; line-height: 1; transition: color 0.15s; }
+    .modal-close:hover { color: var(--text); }
+    .modal-title { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 1.25rem; padding-right: 2rem; }
+    .wa-btn { display: inline-flex; align-items: center; gap: 6px; background: rgba(37,211,102,0.15); color: #25d366; border: 1px solid rgba(37,211,102,0.3); border-radius: 8px; padding: 5px 12px; font-size: 12px; font-weight: 600; font-family: inherit; cursor: pointer; text-decoration: none; transition: all .15s; }
+    .wa-btn:hover { background: rgba(37,211,102,0.25); }
+    .trend-wrap { margin-bottom: 1rem; }
+    .trend-svg { width: 100%; height: 88px; overflow: hidden; display: block; }
+
+    /* ── SPINNER ── */
+    #loading-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      background: #080d1a;
+    }
+    .spinner {
+      width: 38px; height: 38px;
+      border: 3px solid rgba(59,130,246,0.15);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loading-screen p { font-size: 14px; color: var(--muted); }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes barGrow {
+      from { width: 0 !important; }
+    }
+
+    /* Tab panel fade when switching */
+    .tab-panel { animation: fadeSlideUp 0.3s cubic-bezier(.22,1,.36,1) both; }
+
+    /* Stat cards stagger */
+    .stat-card:nth-child(1) { animation: fadeSlideUp 0.45s cubic-bezier(.22,1,.36,1) 0.05s both; }
+    .stat-card:nth-child(2) { animation: fadeSlideUp 0.45s cubic-bezier(.22,1,.36,1) 0.12s both; }
+    .stat-card:nth-child(3) { animation: fadeSlideUp 0.45s cubic-bezier(.22,1,.36,1) 0.18s both; }
+    .stat-card:nth-child(4) { animation: fadeSlideUp 0.45s cubic-bezier(.22,1,.36,1) 0.24s both; }
+
+    /* Review cards */
+    .review-card { animation: fadeSlideUp 0.4s cubic-bezier(.22,1,.36,1) both; }
+
+    /* Leaderboard cards */
+    .lb-card { animation: fadeSlideUp 0.4s cubic-bezier(.22,1,.36,1) both; }
+
+    /* Progress bar — already has transition:width 0.5s, just ensure it starts from 0 on tab enter */
+    .lb-fill { animation: barGrow 0.6s cubic-bezier(.22,1,.36,1) both; }
+
+    /* Cards on overview */
+    .card { animation: fadeIn 0.35s ease both; }
+
+    /* ── OFFLINE ── */
+    #offline-screen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 900;
+      background: rgba(8,13,26,0.96);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      text-align: center;
+      padding: 2rem;
+    }
+    #offline-screen.show { display: flex; }
+    #offline-screen .offline-icon { font-size: 48px; opacity: 0.7; }
+    #offline-screen h2 { font-size: 20px; font-weight: 700; }
+    #offline-screen p { font-size: 14px; color: var(--muted); }
+
+    /* ── TOAST ── */
+    #toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+    .toast {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 500;
+      border: 1px solid;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      animation: toast-in 0.25s ease;
+      max-width: 320px;
+    }
+    .toast.success {
+      background: rgba(16,185,129,0.18);
+      border-color: rgba(16,185,129,0.35);
+      color: #6ee7b7;
+    }
+    .toast.error {
+      background: rgba(239,68,68,0.18);
+      border-color: rgba(239,68,68,0.35);
+      color: #fca5a5;
+    }
+    @keyframes toast-in {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── DIVIDERS ── */
+    .divider { border: none; border-top: 1px solid var(--border); margin: 1.1rem 0; }
+
+    /* ── PANEL ── */
+    .panel-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 1rem;
+    }
+
+    /* ── RESPONSIVE ── */
+    /* ── Sync banner button row ── */
+    .sync-btns {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 600px) {
+      .stat-grid { grid-template-columns: 1fr 1fr; }
+      .tabs { gap: 1px; }
+      .tab-btn { min-width: 70px; padding: 8px 8px; font-size: 11px; }
+      nav { padding: 0 1rem; }
+      .nav-title { font-size: 13px; }
+      .nav-badge { display: none; }
+
+      /* Sync banner: stack info + buttons vertically */
+      .sync-banner { flex-direction: column; align-items: flex-start !important; }
+      .sync-btns { width: 100%; }
+      .sync-btns a, .sync-btns button { flex: 1; text-align: center; justify-content: center; }
+
+      /* Cards: tighter padding on mobile */
+      .card { padding: 1rem; border-radius: 14px; }
+
+      /* Filter bar */
+      .qf-btn { font-size: 11px; padding: 5px 9px; }
+
+      /* Modal: full-width on mobile */
+      .modal-overlay { padding: 60px 0.5rem 1rem; }
+      .modal-box { border-radius: 14px; padding: 1.1rem; }
+
+      /* Page padding */
+      .page { padding: 64px 0.75rem 3rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="loading-screen">
+  <div class="spinner"></div>
+  <p>Loading reviews…</p>
+</div>
+
+<!-- Offline -->
+<div id="offline-screen">
+  <div class="offline-icon">📡</div>
+  <h2>You are offline</h2>
+  <p>Connect to the internet to sync reviews data.</p>
+</div>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<!-- Nav -->
+<nav>
+  <a href="/" class="nav-back">← Back to Hub</a>
+  <div class="nav-title">
+    <span class="star-icon">⭐</span> Reviews Tracker
+  </div>
+  <span class="nav-badge">DJI QBM</span>
+</nav>
+
+<!-- Page -->
+<div class="page" id="app" style="display:none;">
+
+  <!-- Tabs -->
+  <div class="tabs" role="tablist">
+    <button class="tab-btn active" data-tab="overview" onclick="switchTab('overview')">Overview</button>
+    <button class="tab-btn" data-tab="reviews" onclick="switchTab('reviews')">Reviews<span id="unattr-badge" class="tab-badge" style="display:none"></span></button>
+    <button class="tab-btn" data-tab="leaderboard" onclick="switchTab('leaderboard')">Leaderboard</button>
+
+    <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">Settings</button>
+  </div>
+
+  <!-- TAB: OVERVIEW -->
+  <div id="tab-overview" class="tab-panel">
+    <!-- Google Sync banner -->
+    <div class="card sync-banner" style="margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="width:36px;height:36px;border-radius:10px;background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.25);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🗺️</div>
+        <div>
+          <div style="font-weight:700;font-size:14px;color:var(--text);">DJI Queensbay Mall Penang</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px;" id="sync-status">Fetch latest reviews directly from Google Maps</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px;" id="last-synced-label"></div>
+        </div>
+      </div>
+      <div class="sync-btns">
+        <a href="https://maps.app.goo.gl/YfHvcCfVqcwTLWvHA" target="_blank" rel="noreferrer" style="font-size:12px;color:var(--blue);text-decoration:none;padding:6px 12px;border:1px solid rgba(59,130,246,0.3);border-radius:8px;white-space:nowrap;">View on Google ↗</a>
+        <button onclick="openReportModal()" style="background:transparent;color:var(--muted);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;">📊 Report</button>
+        <button id="full-sync-btn" onclick="fullSyncFromGoogle()" style="background:transparent;color:var(--blue);border:1px solid rgba(59,130,246,0.4);border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;">↓ Full Sync</button>
+        <button id="sync-btn" onclick="syncFromGoogle()" style="background:var(--blue);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;">⟳ Sync Google</button>
+      </div>
+    </div>
+    <div class="stat-grid" id="stat-grid"></div>
+    <div class="card trend-wrap" style="margin-bottom:1rem;"><p class="panel-title">Rating Trend <span style="font-size:11px;font-weight:400;color:var(--muted);">last 12 weeks</span></p><svg class="trend-svg" id="trend-svg"></svg></div>
+    <div class="card" style="margin-bottom:1rem;">
+      <p class="panel-title">Rating Distribution</p>
+      <div class="rating-bars" id="rating-bars"></div>
+    </div>
+    <div class="card">
+      <p class="panel-title">Recent Reviews</p>
+      <div id="recent-reviews"></div>
+    </div>
+  </div>
+
+  <!-- TAB: REVIEWS -->
+  <div id="tab-reviews" class="tab-panel" style="display:none;">
+    <div class="card" style="margin-bottom:12px;padding:12px 16px;">
+      <!-- Quick date buttons -->
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+        <button class="qf-btn active" id="qf-all" onclick="setQuickFilter('all')">All time</button>
+        <button class="qf-btn" id="qf-month" onclick="setQuickFilter('month')">This month</button>
+        <button class="qf-btn" id="qf-3m" onclick="setQuickFilter('3m')">Last 3 months</button>
+        <button class="qf-btn" id="qf-year" onclick="setQuickFilter('year')">This year</button>
+        <button class="qf-btn" id="qf-custom" onclick="setQuickFilter('custom')" style="margin-left:auto;">Custom range</button>
+      </div>
+      <!-- Custom date range (hidden by default) -->
+      <div id="custom-range" style="display:none;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
+        <input type="date" id="filter-from" class="form-input" style="width:auto;padding:6px 10px;" onchange="applyFilters()">
+        <span style="color:var(--muted);font-size:13px;">to</span>
+        <input type="date" id="filter-to" class="form-input" style="width:auto;padding:6px 10px;" onchange="applyFilters()">
+      </div>
+      <!-- Search + star + salesman filters -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <input type="search" id="filter-search" class="form-input" placeholder="Search reviews…" style="flex:1;min-width:140px;padding:7px 10px;" oninput="applyFilters()">
+        <select id="filter-stars" class="form-input" style="width:auto;padding:7px 10px;" onchange="applyFilters()">
+          <option value="">All ratings</option>
+          <option value="5">★★★★★ only</option>
+          <option value="4">4★ &amp; above</option>
+          <option value="3">3★ &amp; above</option>
+          <option value="1">1–2★ only</option>
+        </select>
+        <select id="filter-salesman" class="form-input" style="width:auto;padding:7px 10px;" onchange="applyFilters()">
+          <option value="">All salesmen</option>
+        </select>
+      </div>
+      <div id="filter-count" style="font-size:12px;color:var(--muted);margin-top:8px;"></div>
+      <button onclick="exportCSV()" style="margin-top:8px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--muted);border-radius:7px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">⬇ Export CSV</button>
+    </div>
+    <div id="all-reviews-list"></div>
+  </div>
+
+  <!-- TAB: LEADERBOARD -->
+  <div id="tab-leaderboard" class="tab-panel" style="display:none;">
+    <div class="lb-header">
+      <div class="lb-month" id="lb-month-label"></div>
+    </div>
+    <div id="lb-content"></div>
+  </div>
+
+  <!-- TAB: ADD REVIEW -->
+
+  <!-- TAB: SETTINGS -->
+  <div id="tab-settings" class="tab-panel" style="display:none;">
+
+    <!-- PIN gate -->
+    <div class="card" id="settings-gate">
+      <div class="pin-gate">
+        <div style="font-size:32px;margin-bottom:12px;opacity:0.6;">🔒</div>
+        <p>Enter your PIN to manage settings.</p>
+        <div class="pin-gate-input">
+          <input class="form-input" type="password" id="settings-pin-input" placeholder="PIN" maxlength="8" style="width:120px;text-align:center;letter-spacing:0.15em;" onkeydown="if(event.key==='Enter')unlockSettings()" />
+          <button type="button" class="btn-primary" onclick="unlockSettings()">Unlock</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings panel (hidden until unlocked) -->
+    <div id="settings-panel" style="display:none;">
+
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+          <p class="panel-title" style="margin-bottom:0;">Salesmen</p>
+          <button type="button" class="btn-secondary" onclick="addSalesmanRow()">+ Add</button>
+        </div>
+
+        <div id="salesman-rows"></div>
+
+        <div class="settings-actions">
+          <button type="button" class="btn-primary" onclick="saveSettings()">Save Settings</button>
+          <button type="button" class="lock-btn" onclick="lockSettings()">🔒 Lock</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:1rem;">
+        <p class="panel-title" style="margin-bottom:0.5rem;">Data Maintenance</p>
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1rem;">Remove duplicate reviews that may have been added during syncs. Safe to run — no real reviews will be lost, only exact duplicates.</p>
+        <button type="button" class="btn-secondary" id="dedup-btn" onclick="runDedup()">Remove Duplicates</button>
+        <span id="dedup-result" style="margin-left:0.75rem;font-size:0.82rem;color:var(--text-muted);"></span>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<div id="modal-container"></div>
+
+<script>
+// Kill any service worker controlling this page — it causes stale HTML caching
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    regs.forEach(r => r.unregister());
+  });
+}
+
+/* ───────────────────────────────────────────
+   STATE
+─────────────────────────────────────────── */
+let reviews = [];
+let settings = { salesmen: [] };
+let pin = '';
+let currentTab = 'overview';
+let selectedStars = 0;
+let settingsUnlocked = false;
+
+const API = '/.netlify/functions/reviews-api';
+
+/* ───────────────────────────────────────────
+   INIT
+─────────────────────────────────────────── */
+window.addEventListener('DOMContentLoaded', () => {
+  // Hard fallback: if still loading after 10s, force-show app
+  setTimeout(() => {
+    const ls = document.getElementById('loading-screen');
+    if (ls && ls.style.display !== 'none') {
+      ls.style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      renderAll();
+    }
+  }, 10000);
+  loadData();
+});
+
+window.addEventListener('offline', () => { document.getElementById('offline-screen').classList.add('show'); });
+window.addEventListener('online',  () => { document.getElementById('offline-screen').classList.remove('show'); });
+
+function fetchWithTimeout(url, opts = {}, ms = 15000) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  return fetch(url, { ...opts, signal: ctrl.signal }).finally(() => clearTimeout(timer));
+}
+
+async function loadData() {
+  try {
+    const [revRes, setRes] = await Promise.all([
+      fetchWithTimeout(API + '?action=list'),
+      fetchWithTimeout(API + '?action=settings')
+    ]);
+
+    if (revRes.ok) {
+      const data = await revRes.json();
+      reviews = Array.isArray(data) ? data : (data.reviews || []);
+    }
+    if (setRes.ok) {
+      const data = await setRes.json();
+      settings = data.settings || data || { salesmen: [] };
+      if (!Array.isArray(settings.salesmen)) settings.salesmen = [];
+    }
+  } catch (e) {
+    // offline or function not deployed — use empty state
+  }
+
+  document.getElementById('loading-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+
+  renderAll();
+
+  // Show last synced time
+  fetchWithTimeout(API + '?action=last-synced').then(r => r.json()).then(d => {
+    const el = document.getElementById('last-synced-label');
+    if (!el) return;
+    if (!d.at) { el.textContent = 'Never synced from Google'; return; }
+    const dt = new Date(d.at);
+    const now = new Date();
+    const mins = Math.floor((now - dt) / 60000);
+    const hrs = Math.floor(mins / 60);
+    const days = Math.floor(hrs / 24);
+    let ago = days > 0 ? `${days}d ago` : hrs > 0 ? `${hrs}h ago` : mins > 1 ? `${mins}m ago` : 'just now';
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const stamp = `${dt.getDate()} ${months[dt.getMonth()]}, ${dt.toLocaleTimeString('en-MY',{hour:'2-digit',minute:'2-digit',hour12:true})}`;
+    el.textContent = `Last synced: ${stamp} (${ago})`;
+  }).catch(() => {});
+
+  // Silently auto-attribute unmatched reviews in background
+  fetch(API + '?action=auto-attribute', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
+    .then(r => r.json()).then(d => { if (d.updated > 0) loadData(); }).catch(() => {});
+}
+
+function renderAll() {
+  renderOverview();
+  renderAllReviews();
+  renderLeaderboard();
+  populateSalesmanDropdowns();
+  updateUnattributedBadge();
+}
+
+function countUp(el, target, isFloat) {
+  const dur = 900, steps = 40, interval = dur / steps;
+  let step = 0;
+  const timer = setInterval(() => {
+    step++;
+    const val = isFloat ? (target * step / steps).toFixed(1) : Math.round(target * step / steps);
+    el.textContent = val;
+    if (step >= steps) { el.textContent = isFloat ? target.toFixed(1) : target; clearInterval(timer); }
+  }, interval);
+}
+
+/* ───────────────────────────────────────────
+   HELPERS
+─────────────────────────────────────────── */
+function thisMonth(dateStr) {
+  if (!dateStr) return false;
+  const d = new Date(dateStr);
+  const now = new Date();
+  return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+}
+
+function starsHtml(rating, cls = '') {
+  let h = '<span class="stars ' + cls + '">';
+  for (let i = 1; i <= 5; i++) {
+    h += '<span class="s' + (i > rating ? ' empty' : '') + '">★</span>';
+  }
+  return h + '</span>';
+}
+
+function fmtDate(str) {
+  if (!str) return '';
+  const d = new Date(str + 'T00:00:00');
+  return d.toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function genId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+function setTodayDate() {
+  const el = document.getElementById('rev-date');
+  if (el) {
+    const now = new Date();
+    el.value = now.toISOString().slice(0, 10);
+  }
+}
+
+/* ───────────────────────────────────────────
+   TABS
+─────────────────────────────────────────── */
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+  const panel = document.getElementById('tab-' + tab);
+  panel.style.display = 'block';
+  // Re-trigger fade animation on each tab switch
+  panel.style.animation = 'none';
+  panel.offsetHeight; // force reflow
+  panel.style.animation = '';
+  currentTab = tab;
+}
+
+/* ───────────────────────────────────────────
+   OVERVIEW
+─────────────────────────────────────────── */
+function renderOverview() {
+  const total = reviews.length;
+  const avg = total ? (reviews.reduce((a, r) => a + (r.rating || 0), 0) / total) : 0;
+  const monthRevs = reviews.filter(r => thisMonth(r.date));
+  const monthCount = monthRevs.length;
+  const monthAvg = monthCount ? (monthRevs.reduce((a, r) => a + (r.rating || 0), 0) / monthCount) : 0;
+
+  const avgStars = starsHtml(Math.round(avg));
+
+  document.getElementById('stat-grid').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-label">Total Reviews</div>
+      <div class="stat-value" id="sv-total">0</div>
+      <div class="stat-sub">all time</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Average Rating</div>
+      <div class="stat-value" id="sv-avg">${avg ? '0.0' : '—'}</div>
+      <div class="stat-sub">${avgStars}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">This Month</div>
+      <div class="stat-value" id="sv-month">0</div>
+      <div class="stat-sub">reviews</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Month Avg</div>
+      <div class="stat-value" id="sv-mavg">${monthAvg ? '0.0' : '—'}</div>
+      <div class="stat-sub">${monthCount ? starsHtml(Math.round(monthAvg)) : 'no data'}</div>
+    </div>
+  `;
+
+  // Count-up animations
+  if (total) countUp(document.getElementById('sv-total'), total, false);
+  if (avg)   countUp(document.getElementById('sv-avg'), avg, true);
+  if (monthCount) countUp(document.getElementById('sv-month'), monthCount, false);
+  if (monthAvg)   countUp(document.getElementById('sv-mavg'), monthAvg, true);
+
+  // Trend chart — avg rating per week, last 12 weeks
+  const svg = document.getElementById('trend-svg');
+  if (svg) {
+    const weeks = [];
+    for (let i = 11; i >= 0; i--) {
+      const end = new Date(); end.setDate(end.getDate() - i*7);
+      const start = new Date(end); start.setDate(start.getDate() - 6);
+      const wRevs = reviews.filter(r => { const d = new Date(r.date+'T00:00:00'); return d >= start && d <= end; });
+      const wAvg = wRevs.length ? wRevs.reduce((s,r)=>s+(r.rating||0),0)/wRevs.length : null;
+      weeks.push({ avg: wAvg, count: wRevs.length });
+    }
+    const W = 600, H = 80, padX = 10, padY = 8;
+    const points = weeks.map((w,i) => ({ x: padX + (i/(weeks.length-1))*(W-padX*2), y: w.avg === null ? null : H - padY - ((w.avg-1)/4)*(H-padY*2) })).filter(p=>p.y!==null);
+    if (points.length >= 2) {
+      const path = points.map((p,i)=>(i===0?`M${p.x},${p.y}`:`L${p.x},${p.y}`)).join(' ');
+      const dots = points.map(p=>`<circle cx="${p.x}" cy="${p.y}" r="3" fill="#3b82f6"/>`).join('');
+      svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    svg.setAttribute('preserveAspectRatio', 'none');
+    svg.innerHTML = `<polyline points="${points.map(p=>`${p.x},${p.y}`).join(' ')}" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>${dots}<line x1="${padX}" y1="${padY}" x2="${padX}" y2="${H-padY}" stroke="rgba(255,255,255,0.08)" stroke-width="1"/><line x1="${padX}" y1="${H-padY}" x2="${W-padX}" y2="${H-padY}" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>`;
+    } else {
+      svg.innerHTML = '<text x="50%" y="50%" text-anchor="middle" fill="rgba(255,255,255,0.25)" font-size="12" dominant-baseline="middle">Not enough data yet</text>';
+    }
+  }
+
+  // Rating distribution
+  const counts = [0,0,0,0,0];
+  reviews.forEach(r => { if (r.rating >= 1 && r.rating <= 5) counts[r.rating - 1]++; });
+  let barsHtml = '';
+  for (let star = 5; star >= 1; star--) {
+    const c = counts[star - 1];
+    const pct = total ? Math.round((c / total) * 100) : 0;
+    barsHtml += `
+      <div class="rbar-row">
+        <span class="rbar-label">${star}★</span>
+        <div class="rbar-track"><div class="rbar-fill" style="width:${pct}%"></div></div>
+        <span class="rbar-count">${c} <span style="color:rgba(255,255,255,0.25)">(${pct}%)</span></span>
+      </div>`;
+  }
+  document.getElementById('rating-bars').innerHTML = barsHtml || '<p style="color:var(--muted);font-size:13px;">No data yet.</p>';
+
+  // Recent 5
+  const recent = [...reviews].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+  if (recent.length === 0) {
+    document.getElementById('recent-reviews').innerHTML = '<p style="color:var(--muted);font-size:13px;">No reviews yet.</p>';
+    return;
+  }
+  document.getElementById('recent-reviews').innerHTML = recent.map(r => `
+    <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+          <span style="font-size:13px;font-weight:600;">${esc(r.reviewer || 'Anonymous')}</span>
+          ${starsHtml(r.rating)}
+        </div>
+        <p style="font-size:12px;color:rgba(255,255,255,0.65);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(r.text || '')}</p>
+      </div>
+      <span style="font-size:11px;color:var(--muted);white-space:nowrap;flex-shrink:0;">${fmtDate(r.date)}</span>
+    </div>
+  `).join('');
+}
+
+/* ───────────────────────────────────────────
+   ALL REVIEWS
+─────────────────────────────────────────── */
+let activeQuickFilter = 'all';
+
+function setQuickFilter(qf) {
+  activeQuickFilter = qf;
+  document.querySelectorAll('.qf-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('qf-' + qf)?.classList.add('active');
+  const customRow = document.getElementById('custom-range');
+  if (customRow) customRow.style.display = qf === 'custom' ? 'flex' : 'none';
+  applyFilters();
+}
+
+function applyFilters() {
+  const el = document.getElementById('all-reviews-list');
+  const countEl = document.getElementById('filter-count');
+  if (!reviews.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><p>No reviews yet. Press ⟳ Sync Google to import.</p></div>`;
+    return;
+  }
+
+  const search = (document.getElementById('filter-search')?.value || '').toLowerCase();
+  const starsFilter = document.getElementById('filter-stars')?.value || '';
+  const salesmanFilter = document.getElementById('filter-salesman')?.value || '';
+  const now = new Date();
+
+  let from = null, to = null;
+  if (activeQuickFilter === 'month') {
+    from = new Date(now.getFullYear(), now.getMonth(), 1);
+    to = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  } else if (activeQuickFilter === '3m') {
+    from = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+  } else if (activeQuickFilter === 'year') {
+    from = new Date(now.getFullYear(), 0, 1);
+  } else if (activeQuickFilter === 'custom') {
+    const fv = document.getElementById('filter-from')?.value;
+    const tv = document.getElementById('filter-to')?.value;
+    if (fv) from = new Date(fv);
+    if (tv) { to = new Date(tv); to.setHours(23, 59, 59); }
+  }
+
+  let filtered = [...reviews].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  if (from) filtered = filtered.filter(r => new Date(r.date + 'T00:00:00') >= from);
+  if (to)   filtered = filtered.filter(r => new Date(r.date + 'T00:00:00') <= to);
+
+  if (starsFilter === '1') {
+    filtered = filtered.filter(r => r.rating <= 2);
+  } else if (starsFilter) {
+    filtered = filtered.filter(r => r.rating >= parseInt(starsFilter));
+  }
+
+  if (salesmanFilter) filtered = filtered.filter(r => r.salesman === salesmanFilter);
+  if (search) filtered = filtered.filter(r =>
+    (r.reviewer || '').toLowerCase().includes(search) ||
+    (r.text || '').toLowerCase().includes(search)
+  );
+
+  if (countEl) {
+    countEl.textContent = filtered.length === reviews.length
+      ? `${reviews.length} reviews`
+      : `${filtered.length} of ${reviews.length} reviews`;
+  }
+
+  el.innerHTML = filtered.length
+    ? filtered.map(r => buildReviewCard(r)).join('')
+    : `<div class="empty-state"><div class="empty-icon">🔍</div><p>No reviews match your filters.</p></div>`;
+
+  // Stagger review cards
+  el.querySelectorAll('.review-card').forEach((card, i) => {
+    card.style.animationDelay = `${Math.min(i * 0.04, 0.4)}s`;
+  });
+}
+
+function renderAllReviews() { applyFilters(); }
+
+function buildReviewCard(r) {
+  const sOptions = salesmanOptions(r.salesman || '');
+  const avatar = r.reviewerPhoto
+    ? `<img class="review-avatar" src="${esc(r.reviewerPhoto)}" alt="" loading="lazy" onerror="this.style.display='none'">`
+    : `<div class="review-avatar-placeholder">👤</div>`;
+  const guideBadge = r.localGuide ? `<span class="local-guide-badge">Local Guide</span>` : '';
+  const reviewCount = r.reviewerReviewCount ? `${r.reviewerReviewCount} review${r.reviewerReviewCount !== 1 ? 's' : ''}` : '';
+  const metaParts = [guideBadge, reviewCount].filter(Boolean);
+  const imagesHtml = (r.images && r.images.length)
+    ? `<div class="review-images">${r.images.slice(0,4).map(img => `<img class="review-img" src="${esc(img)}" alt="Review photo" loading="lazy" onclick="window.open('${esc(img)}','_blank')">`).join('')}</div>`
+    : '';
+  const sourceLink = r.reviewLink
+    ? `<a class="review-source-link" href="${esc(r.reviewLink)}" target="_blank" rel="noopener">View on Google ↗</a>`
+    : '';
+
+  // Sentiment tag
+  const sentimentInfo = r.rating >= 4 ? ['Positive','sentiment-pos'] : r.rating === 3 ? ['Neutral','sentiment-neu'] : ['Critical','sentiment-crit'];
+  const sentimentTag = `<span class="sentiment-tag ${sentimentInfo[1]}">${sentimentInfo[0]}</span>`;
+
+  // Highlight salesman name in text
+  const displayText = highlightText(r.text || '', r.salesman);
+
+  // Product mentions
+  const PRODUCTS = ['Mini 4 Pro','Mini 3 Pro','Mini 2','Action 6','Action 4','Osmo Mobile','Mic Mini','DJI Flip','Mavic','Goggles','Neo','FPV'];
+  const textLower = (r.text || '').toLowerCase();
+  const foundProducts = PRODUCTS.filter(p => textLower.includes(p.toLowerCase())).slice(0,3);
+  const productTagsHtml = foundProducts.length ? `<div class="product-tags">${foundProducts.map(p=>`<span class="product-tag">${p}</span>`).join('')}</div>` : '';
+
+  return `
+    <div class="review-card" id="rcard-${r.id}">
+      <div class="review-top">
+        <div class="review-user-info">
+          ${avatar}
+          <div class="review-user-text">
+            <div class="review-name">${esc(r.reviewer || 'Anonymous')}</div>
+            ${metaParts.length ? `<div class="review-meta">${metaParts.join('')}</div>` : ''}
+          </div>
+        </div>
+        <span class="review-date">${fmtDate(r.date)}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin:4px 0;">${starsHtml(r.rating)} ${sentimentTag}</div>
+      ${r.text ? `<p class="review-text truncated" id="rtext-${r.id}">${displayText}</p>` : `<p class="review-text" style="color:var(--muted);font-style:italic;">No written review</p>`}
+      ${productTagsHtml}
+      ${(r.text && r.text.length > 120) ? `<button class="show-more-btn" id="rmore-${r.id}" onclick="toggleText('${r.id}')">Show more</button>` : ''}
+      ${imagesHtml}
+      <div class="review-footer">
+        <span class="attr-label">Attributed to:</span>
+        <select class="attr-select" onchange="attributeReview('${r.id}', this.value)">${sOptions}</select>
+        ${sourceLink}
+      </div>
+    </div>`;
+}
+
+function salesmanOptions(selected) {
+  let h = `<option value=""${selected === '' ? ' selected' : ''}>Unattributed</option>`;
+  settings.salesmen.forEach(s => {
+    h += `<option value="${esc(s.name)}"${selected === s.name ? ' selected' : ''}>${esc(s.name)}</option>`;
+  });
+  return h;
+}
+
+function toggleText(id) {
+  const el = document.getElementById('rtext-' + id);
+  const btn = document.getElementById('rmore-' + id);
+  if (!el || !btn) return;
+  const collapsed = el.classList.contains('truncated');
+  el.classList.toggle('truncated', !collapsed);
+  btn.textContent = collapsed ? 'Show less' : 'Show more';
+}
+
+function initDelete(id) {
+  const container = document.getElementById('rdel-' + id);
+  if (!container) return;
+  container.style.display = 'block';
+  container.innerHTML = `
+    <div class="pin-inline" style="margin-left:0;flex-wrap:wrap;gap:8px;">
+      <span style="font-size:12px;color:var(--muted);">Enter PIN to confirm delete:</span>
+      <input type="password" maxlength="8" placeholder="PIN" id="dpin-${id}" style="width:90px;font-size:12px;font-family:inherit;color:var(--text);background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:7px;padding:4px 8px;outline:none;letter-spacing:0.1em;" onkeydown="if(event.key==='Enter')confirmDelete('${id}')" />
+      <button class="pin-confirm-btn" style="font-size:12px;font-family:inherit;font-weight:500;padding:4px 10px;border-radius:7px;border:1px solid rgba(239,68,68,0.4);background:rgba(239,68,68,0.15);color:var(--red);cursor:pointer;" onclick="confirmDelete('${id}')">Delete</button>
+      <button class="pin-cancel-btn" style="font-size:12px;font-family:inherit;font-weight:500;padding:4px 10px;border-radius:7px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:var(--muted);cursor:pointer;" onclick="cancelDelete('${id}')">Cancel</button>
+    </div>`;
+  document.getElementById('dpin-' + id).focus();
+}
+
+function cancelDelete(id) {
+  const el = document.getElementById('rdel-' + id);
+  if (el) { el.style.display = 'none'; el.innerHTML = ''; }
+}
+
+async function syncFromGoogle() {
+  const btn = document.getElementById('sync-btn');
+  const fullBtn = document.getElementById('full-sync-btn');
+  const status = document.getElementById('sync-status');
+  btn.disabled = true; fullBtn.disabled = true;
+  btn.textContent = '⟳ Syncing…';
+  status.textContent = 'Connecting to Google Maps…';
+  try {
+    const res = await fetch('/.netlify/functions/reviews-sync', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+    const d = await res.json();
+    if (!res.ok) {
+      status.textContent = `⚠ ${d.error || 'Sync failed.'}`;
+      showToast(d.error || 'Sync failed.', 'error');
+    } else {
+      const added = d.added || 0;
+      const ratingPart = d.storeRating ? ` · ${d.storeRating}★ (${d.storeTotalReviews} on Google)` : '';
+      status.textContent = added > 0
+        ? `✓ ${added} new review${added !== 1 ? 's' : ''} added · ${d.total} total${ratingPart}`
+        : `✓ Up to date · ${d.total} reviews${ratingPart}`;
+      showToast(added > 0 ? `${added} new review${added !== 1 ? 's' : ''} imported!` : 'Already up to date.', 'success');
+      const listRes = await fetch('/.netlify/functions/reviews-api?action=list');
+      reviews = await listRes.json(); renderAll();
+      // Check for low-rated new reviews
+      if (added > 0) {
+        const today = new Date().toISOString().slice(0,10);
+        const lowRated = reviews.filter(r => r.rating <= 2 && r.date === today);
+        if (lowRated.length) {
+          const c = document.getElementById('toast-container');
+          const t = document.createElement('div');
+          t.className = 'toast error';
+          t.style.cssText = 'pointer-events:all;cursor:default;';
+          t.innerHTML = `⚠ ${lowRated.length} low-rated review${lowRated.length>1?'s':''} received! Check Reviews tab. <button onclick="this.parentElement.remove()" style="background:none;border:none;color:inherit;font-size:16px;cursor:pointer;margin-left:8px;padding:0;line-height:1;">✕</button>`;
+          c.appendChild(t);
+        }
+      }
+    }
+  } catch (e) {
+    status.textContent = '⚠ Network error. Try again.';
+    showToast('Network error during sync.', 'error');
+  }
+  btn.disabled = false; fullBtn.disabled = false;
+  btn.textContent = '⟳ Sync Google';
+}
+
+async function fullSyncFromGoogle() {
+  const btn = document.getElementById('full-sync-btn');
+  const syncBtn = document.getElementById('sync-btn');
+  const status = document.getElementById('sync-status');
+  btn.disabled = true; syncBtn.disabled = true;
+
+  let pageToken = null;
+  let totalAdded = 0;
+  let pageNum = 0;
+  let lastData = null;
+
+  try {
+    do {
+      pageNum++;
+      btn.textContent = `↓ Page ${pageNum}…`;
+      status.textContent = `Fetching page ${pageNum} of Google reviews…`;
+
+      const res = await fetch('/.netlify/functions/reviews-sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pageToken }),
+      });
+      const d = await res.json();
+
+      if (!res.ok) {
+        status.textContent = `⚠ ${d.error || 'Sync failed on page ' + pageNum}`;
+        showToast(d.error || 'Sync failed.', 'error');
+        break;
+      }
+
+      totalAdded += d.added || 0;
+      pageToken = d.nextPageToken || null;
+      lastData = d;
+
+    } while (pageToken && pageNum < 40);
+
+    if (lastData) {
+      const ratingPart = lastData.storeRating ? ` · ${lastData.storeRating}★ (${lastData.storeTotalReviews} on Google)` : '';
+      status.textContent = totalAdded > 0
+        ? `✓ Full sync done · ${totalAdded} new review${totalAdded !== 1 ? 's' : ''} added · ${lastData.total} total${ratingPart}`
+        : `✓ Full sync done · ${lastData.total} reviews, already up to date${ratingPart}`;
+      showToast(totalAdded > 0 ? `Full sync: ${totalAdded} new review${totalAdded !== 1 ? 's' : ''} imported!` : 'Full sync done — already up to date.', 'success');
+      const listRes = await fetch('/.netlify/functions/reviews-api?action=list');
+      reviews = await listRes.json(); renderAll();
+    }
+  } catch (e) {
+    status.textContent = '⚠ Network error during full sync.';
+    showToast('Network error during full sync.', 'error');
+  }
+
+  btn.disabled = false; syncBtn.disabled = false;
+  btn.textContent = '↓ Full Sync';
+}
+
+async function confirmDelete(id) {
+  const pinEl = document.getElementById('dpin-' + id);
+  const enteredPin = pinEl ? pinEl.value : '';
+  if (!enteredPin) { showToast('Enter PIN to delete.', 'error'); return; }
+
+  try {
+    const res = await fetch(API + '?action=delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, pin: enteredPin })
+    });
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      showToast(d.error || 'Delete failed. Check PIN.', 'error');
+      return;
+    }
+    reviews = reviews.filter(r => r.id !== id);
+    showToast('Review deleted.', 'success');
+    renderAll();
+  } catch {
+    showToast('Network error. Could not delete.', 'error');
+  }
+}
+
+async function attributeReview(id, salesman) {
+  try {
+    const res = await fetch(API + '?action=attribute', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, salesman })
+    });
+    if (!res.ok) { showToast('Could not save attribution.', 'error'); return; }
+    const rev = reviews.find(r => r.id === id);
+    if (rev) rev.salesman = salesman;
+    renderLeaderboard();
+    showToast(salesman ? `Attributed to ${salesman}.` : 'Removed attribution.', 'success');
+  } catch {
+    showToast('Network error.', 'error');
+  }
+}
+
+/* ───────────────────────────────────────────
+   LEADERBOARD
+─────────────────────────────────────────── */
+function renderLeaderboard() {
+  const now = new Date();
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const label = monthNames[now.getMonth()] + ' ' + now.getFullYear();
+  document.getElementById('lb-month-label').textContent = label;
+
+  const el = document.getElementById('lb-content');
+  if (!settings.salesmen.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">👥</div><p>No salesmen set up yet.</p><button onclick="switchTab('settings')">Go to Settings →</button></div>`;
+    return;
+  }
+
+  const monthRevs = reviews.filter(r => thisMonth(r.date));
+  const unattr = monthRevs.filter(r => !r.salesman).length;
+
+  const ranked = settings.salesmen.map(s => {
+    const count = monthRevs.filter(r => r.salesman === s.name).length;
+    const target = parseInt(s.target) || 10;
+    return { ...s, count, target };
+  }).sort((a, b) => b.count - a.count);
+
+  let html = ranked.map((s, i) => {
+    const pct = Math.min((s.count / s.target) * 100, 100);
+    const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+    const rankLabel = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
+    let badge = '';
+    let fillCls = '';
+    if (s.count >= s.target) {
+      badge = '<span class="lb-badge exceeded">🏆 Exceeded</span>';
+      fillCls = 'exceeded';
+    } else if (s.count >= s.target * 0.5) {
+      badge = '<span class="lb-badge on-track">✓ On Track</span>';
+    } else {
+      badge = '<span class="lb-badge behind">Behind</span>';
+    }
+    const waBadge = s.count >= s.target ? '🏆' : s.count >= s.target * 0.5 ? '✓' : '—';
+    const waShareText = `${s.name} - ${s.count}/${s.target} reviews this month ${waBadge}`;
+    return `
+      <div class="lb-card" onclick="openSalesmanModal('${esc(s.name)}')" style="cursor:pointer;">
+        <div class="lb-rank ${rankClass}">${rankLabel}</div>
+        <div class="lb-info">
+          <div class="lb-name">${esc(s.name)}</div>
+          <div class="lb-progress-row">
+            <div class="lb-track"><div class="lb-fill ${fillCls}" style="width:${pct.toFixed(1)}%"></div></div>
+            <span class="lb-count">${s.count} / ${s.target}</span>
+          </div>
+        </div>
+        ${badge}
+        <a class="wa-btn" href="https://wa.me/?text=${encodeURIComponent(waShareText)}" target="_blank" onclick="event.stopPropagation()" title="Share via WhatsApp">📲</a>
+      </div>`;
+  }).join('');
+
+  if (unattr > 0) {
+    html += `<div class="lb-unattr">📭 ${unattr} review${unattr !== 1 ? 's' : ''} not yet attributed this month</div>`;
+  }
+
+  el.innerHTML = html;
+
+  // Stagger leaderboard cards + animate progress bars
+  el.querySelectorAll('.lb-card').forEach((card, i) => {
+    card.style.animationDelay = `${i * 0.07}s`;
+  });
+  // Let bars animate in after card appears
+  el.querySelectorAll('.lb-fill').forEach((bar, i) => {
+    bar.style.animationDelay = `${i * 0.07 + 0.15}s`;
+  });
+}
+
+/* ───────────────────────────────────────────
+   POPULATE DROPDOWNS
+─────────────────────────────────────────── */
+function populateSalesmanDropdowns() {
+  const sel = document.getElementById('filter-salesman');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = `<option value="">All salesmen</option>`;
+  settings.salesmen.forEach(s => {
+    sel.innerHTML += `<option value="${esc(s.name)}">${esc(s.name)}</option>`;
+  });
+  if (cur) sel.value = cur;
+}
+
+/* ───────────────────────────────────────────
+   SETTINGS
+─────────────────────────────────────────── */
+function unlockSettings() {
+  const inputPin = document.getElementById('settings-pin-input').value;
+  if (!inputPin) { showToast('Enter a PIN.', 'error'); return; }
+  pin = inputPin;
+  settingsUnlocked = true;
+  document.getElementById('settings-gate').style.display = 'none';
+  document.getElementById('settings-panel').style.display = 'block';
+  renderSalesmanRows();
+}
+
+function lockSettings() {
+  settingsUnlocked = false;
+  pin = '';
+  document.getElementById('settings-pin-input').value = '';
+  document.getElementById('settings-gate').style.display = 'block';
+  document.getElementById('settings-panel').style.display = 'none';
+}
+
+function renderSalesmanRows() {
+  const el = document.getElementById('salesman-rows');
+  if (!settings.salesmen.length) {
+    el.innerHTML = '<p style="font-size:13px;color:var(--muted);margin-bottom:1rem;">No salesmen yet. Add one below.</p>';
+    return;
+  }
+  el.innerHTML = settings.salesmen.map((s, i) => `
+    <div class="salesman-row" id="srow-${i}">
+      <input class="form-input salesman-name-input" type="text" value="${esc(s.name)}" placeholder="Name" data-idx="${i}" data-field="name" oninput="updateSalesmanField(this)" />
+      <input class="form-input salesman-target-input" type="number" min="0" value="${s.target || 10}" placeholder="Target" data-idx="${i}" data-field="target" oninput="updateSalesmanField(this)" />
+      <button class="sm-del-btn" onclick="removeSalesman(${i})" title="Remove">🗑</button>
+    </div>
+  `).join('');
+}
+
+function updateSalesmanField(input) {
+  const i = parseInt(input.dataset.idx);
+  const field = input.dataset.field;
+  if (!settings.salesmen[i]) return;
+  settings.salesmen[i][field] = field === 'target' ? parseInt(input.value) || 0 : input.value;
+}
+
+function addSalesmanRow() {
+  settings.salesmen.push({ name: '', target: 10 });
+  renderSalesmanRows();
+}
+
+function removeSalesman(i) {
+  settings.salesmen.splice(i, 1);
+  renderSalesmanRows();
+}
+
+async function saveSettings() {
+  // Sync any edited values from inputs
+  document.querySelectorAll('#salesman-rows input').forEach(input => {
+    const i = parseInt(input.dataset.idx);
+    const field = input.dataset.field;
+    if (settings.salesmen[i]) {
+      settings.salesmen[i][field] = field === 'target' ? parseInt(input.value) || 0 : input.value.trim();
+    }
+  });
+
+  // Remove empty names
+  settings.salesmen = settings.salesmen.filter(s => s.name);
+
+  try {
+    const res = await fetch(API + '?action=save-settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pin, settings })
+    });
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      showToast(d.error || 'Could not save settings.', 'error');
+      return;
+    }
+    showToast('Settings saved!', 'success');
+    renderSalesmanRows();
+    renderAll();
+  } catch {
+    showToast('Network error. Could not save.', 'error');
+  }
+}
+
+async function runDedup() {
+  const btn = document.getElementById('dedup-btn');
+  const result = document.getElementById('dedup-result');
+  btn.disabled = true;
+  btn.textContent = 'Removing…';
+  result.textContent = '';
+  try {
+    const res = await fetch(API + '?action=dedup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pin })
+    });
+    const d = await res.json();
+    if (d.ok) {
+      result.textContent = `Done — removed ${d.removed} duplicate${d.removed !== 1 ? 's' : ''} (${d.before} → ${d.after})`;
+      result.style.color = d.removed > 0 ? '#4ade80' : 'var(--text-muted)';
+      // Reload reviews with fresh data
+      reviews = await fetchWithTimeout(API + '?action=list').then(r => r.json()).catch(() => reviews);
+      renderAll();
+    } else {
+      result.textContent = d.error || 'Failed';
+      result.style.color = '#f87171';
+    }
+  } catch {
+    result.textContent = 'Network error';
+    result.style.color = '#f87171';
+  }
+  btn.disabled = false;
+  btn.textContent = 'Remove Duplicates';
+}
+
+/* ───────────────────────────────────────────
+   TOAST
+─────────────────────────────────────────── */
+function showToast(msg, type = 'success') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = 'toast ' + type;
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transition = 'opacity 0.3s';
+    setTimeout(() => toast.remove(), 300);
+  }, 2500);
+}
+
+/* ───────────────────────────────────────────
+   ESCAPE
+─────────────────────────────────────────── */
+function esc(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function highlightText(text, name) {
+  const escaped = esc(text || '');
+  if (!name) return escaped;
+  const escapedName = esc(name).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return escaped.replace(new RegExp(escapedName, 'gi'), m => `<mark class="name-highlight">${m}</mark>`);
+}
+
+function updateUnattributedBadge() {
+  const unattr = reviews.filter(r => !r.salesman && thisMonth(r.date)).length;
+  const badge = document.getElementById('unattr-badge');
+  if (!badge) return;
+  badge.textContent = unattr;
+  badge.style.display = unattr > 0 ? 'inline-block' : 'none';
+}
+
+function exportCSV() {
+  const search = (document.getElementById('filter-search')?.value || '').toLowerCase();
+  const starsFilter = document.getElementById('filter-stars')?.value || '';
+  const salesmanFilter = document.getElementById('filter-salesman')?.value || '';
+  const now = new Date();
+  let from = null, to = null;
+  if (activeQuickFilter === 'month') { from = new Date(now.getFullYear(), now.getMonth(), 1); to = new Date(now.getFullYear(), now.getMonth()+1, 0); }
+  else if (activeQuickFilter === '3m') { from = new Date(now.getFullYear(), now.getMonth()-2, 1); }
+  else if (activeQuickFilter === 'year') { from = new Date(now.getFullYear(), 0, 1); }
+  else if (activeQuickFilter === 'custom') {
+    const fv = document.getElementById('filter-from')?.value; const tv = document.getElementById('filter-to')?.value;
+    if (fv) from = new Date(fv); if (tv) { to = new Date(tv); to.setHours(23,59,59); }
+  }
+  let filtered = [...reviews].sort((a,b) => new Date(b.date)-new Date(a.date));
+  if (from) filtered = filtered.filter(r => new Date(r.date+'T00:00:00') >= from);
+  if (to) filtered = filtered.filter(r => new Date(r.date+'T00:00:00') <= to);
+  if (starsFilter === '1') filtered = filtered.filter(r => r.rating <= 2);
+  else if (starsFilter) filtered = filtered.filter(r => r.rating >= parseInt(starsFilter));
+  if (salesmanFilter) filtered = filtered.filter(r => r.salesman === salesmanFilter);
+  if (search) filtered = filtered.filter(r => (r.reviewer||'').toLowerCase().includes(search)||(r.text||'').toLowerCase().includes(search));
+
+  const getSentiment = r => r.rating >= 4 ? 'Positive' : r.rating === 3 ? 'Neutral' : 'Critical';
+  const csvEsc = v => `"${String(v||'').replace(/"/g,'""')}"`;
+  const rows = [['Date','Reviewer','Rating','Salesman','Sentiment','Text'],...filtered.map(r=>[r.date,r.reviewer,r.rating,r.salesman||'',getSentiment(r),r.text||''])];
+  const csv = rows.map(row=>row.map(csvEsc).join(',')).join('\n');
+  const blob = new Blob([csv],{type:'text/csv'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'qbm-reviews.csv'; a.click();
+}
+
+let _reportData = null; // set by openReportModal, read by shareReportAsImage
+
+async function shareReportAsImage() {
+  if (!_reportData) return;
+  const box = document.querySelector('#modal-container .modal-box');
+  const btn = box?.querySelector('button[onclick="shareReportAsImage()"]');
+  if (btn) { btn.textContent = '⏳ Building…'; btn.disabled = true; }
+
+  try {
+    const { label, count, avg, smStats, topQuote, lowRatings } = _reportData;
+    const S = 2; // retina scale
+    const W = 560, PAD = 32;
+    const textW = W - PAD * 2 - 28; // usable quote text width
+
+    // Pre-load logo
+    const logo = await new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+      img.src = '/icon.svg';
+    });
+
+    // Measure quote height on a temp canvas
+    let quoteH = 0;
+    if (topQuote) {
+      const tmp = document.createElement('canvas').getContext('2d');
+      tmp.font = 'italic 13px system-ui, sans-serif';
+      const words = ('"' + topQuote.text + '"').split(' ');
+      let line = '', lines = 1;
+      for (const w of words) {
+        const t = line ? line + ' ' + w : w;
+        if (tmp.measureText(t).width > textW && line) { lines++; line = w; } else line = t;
+      }
+      quoteH = 32 + lines * 20 + 44; // label + text lines + gap + reviewer + padding
+    }
+
+    const lowH = lowRatings.length ? 52 : 0;
+    const smH = Math.max(smStats.length, 1) * 44;
+    const H = 64 + 16 + 100 + 20 + 28 + smH + (lowRatings.length ? 16 + lowH : 0) + (topQuote ? 16 + quoteH : 0) + 56;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = W * S; canvas.height = H * S;
+    const c = canvas.getContext('2d');
+    c.scale(S, S);
+
+    // ── Background ──
+    const bg = c.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, '#0d1a2e'); bg.addColorStop(1, '#060f1e');
+    c.fillStyle = bg; c.fillRect(0, 0, W, H);
+
+    // ── Header bar ──
+    c.fillStyle = 'rgba(255,255,255,0.04)';
+    c.fillRect(0, 0, W, 64);
+    c.fillStyle = '#e31b1b';
+    c.fillRect(0, 62, W, 2);
+
+    // Title
+    c.fillStyle = '#ffffff';
+    c.font = 'bold 20px system-ui, -apple-system, sans-serif';
+    c.textBaseline = 'middle';
+    c.textAlign = 'left';
+    c.fillText('📊  ' + label + ' Report', PAD, 32);
+
+    // Logo (right side of header)
+    if (logo) {
+      const logoSize = 36;
+      c.save();
+      c.beginPath();
+      c.roundRect(W - PAD - logoSize, 32 - logoSize / 2, logoSize, logoSize, 8);
+      c.clip();
+      c.drawImage(logo, W - PAD - logoSize, 32 - logoSize / 2, logoSize, logoSize);
+      c.restore();
+    }
+
+    let y = 80;
+
+    // ── Stats row ──
+    const drawCard = (x, cw, label2, value) => {
+      c.fillStyle = 'rgba(255,255,255,0.06)';
+      roundRect(c, x, y, cw, 80, 10); c.fill();
+      c.fillStyle = 'rgba(255,255,255,0.4)';
+      c.font = '500 11px system-ui, sans-serif';
+      c.textAlign = 'left'; c.textBaseline = 'top';
+      c.fillText(label2.toUpperCase(), x + 14, y + 14);
+      c.fillStyle = '#ffffff';
+      c.font = 'bold 30px system-ui, sans-serif';
+      c.textBaseline = 'middle';
+      c.fillText(value, x + 14, y + 56);
+    };
+    const gap = 12, hw = (W - PAD * 2 - gap) / 2;
+    drawCard(PAD, hw, 'Reviews', String(count));
+    drawCard(PAD + hw + gap, hw, 'Avg Rating', avg !== '—' ? avg + '★' : '—');
+    y += 100;
+
+    // ── Salesmen ──
+    c.fillStyle = 'rgba(255,255,255,0.3)';
+    c.font = '600 11px system-ui, sans-serif';
+    c.textBaseline = 'top'; c.textAlign = 'left';
+    c.fillText('SALESMEN', PAD, y); y += 24;
+
+    smStats.forEach((s, i) => {
+      if (i > 0) { c.fillStyle = 'rgba(255,255,255,0.06)'; c.fillRect(PAD, y, W - PAD * 2, 1); }
+      c.fillStyle = '#ffffff'; c.font = '600 14px system-ui, sans-serif';
+      c.textBaseline = 'middle'; c.textAlign = 'left';
+      c.fillText(s.name, PAD, y + 22);
+      c.fillStyle = 'rgba(255,255,255,0.45)'; c.font = '13px system-ui, sans-serif';
+      c.textAlign = 'right';
+      c.fillText(s.count + ' reviews · ' + s.avg + '★', W - PAD, y + 22);
+      y += 44;
+    });
+
+    // ── Low rating alert ──
+    if (lowRatings.length) {
+      y += 16;
+      c.fillStyle = 'rgba(220,38,38,0.15)';
+      roundRect(c, PAD, y, W - PAD * 2, lowH, 10); c.fill();
+      c.strokeStyle = 'rgba(220,38,38,0.4)'; c.lineWidth = 1;
+      roundRect(c, PAD, y, W - PAD * 2, lowH, 10); c.stroke();
+      c.fillStyle = '#f87171';
+      c.font = '600 13px system-ui, sans-serif';
+      c.textAlign = 'left'; c.textBaseline = 'middle';
+      c.fillText('⚠️  ' + lowRatings.length + ' low-rated review' + (lowRatings.length > 1 ? 's' : '') + ' this month', PAD + 14, y + lowH / 2);
+      y += lowH;
+    }
+
+    // ── Top quote ──
+    if (topQuote) {
+      y += 16;
+      c.fillStyle = 'rgba(255,255,255,0.04)';
+      roundRect(c, PAD, y, W - PAD * 2, quoteH, 10); c.fill();
+      c.fillStyle = 'rgba(255,255,255,0.3)';
+      c.font = '600 11px system-ui, sans-serif';
+      c.textAlign = 'left'; c.textBaseline = 'top';
+      c.fillText('TOP QUOTE THIS MONTH', PAD + 14, y + 12);
+      c.fillStyle = 'rgba(255,255,255,0.8)';
+      c.font = 'italic 13px system-ui, sans-serif';
+      const quoteLinesY = wrapText(c, '"' + topQuote.text + '"', PAD + 14, y + 32, textW, 20);
+      c.fillStyle = 'rgba(255,255,255,0.4)';
+      c.font = '500 11px system-ui, sans-serif';
+      c.textBaseline = 'top';
+      c.fillText('— ' + topQuote.reviewer, PAD + 14, quoteLinesY + 24);
+      y += quoteH;
+    }
+
+    // ── Footer ──
+    y += 20;
+    c.fillStyle = 'rgba(255,255,255,0.08)'; c.fillRect(PAD, y, W - PAD * 2, 1); y += 12;
+    c.fillStyle = '#e31b1b'; c.fillRect(PAD, y, 24, 3); y += 10;
+    c.fillStyle = 'rgba(255,255,255,0.5)';
+    c.font = '600 11px system-ui, sans-serif';
+    c.textBaseline = 'top'; c.textAlign = 'left';
+    c.fillText('Generated by DJI QBM Operator Hub · Reviews Tracker', PAD, y);
+
+    // ── Export ──
+    const dataURL = canvas.toDataURL('image/png');
+    const byteStr = atob(dataURL.split(',')[1]);
+    const ab = new Uint8Array(byteStr.length);
+    for (let i = 0; i < byteStr.length; i++) ab[i] = byteStr.charCodeAt(i);
+    const blob = new Blob([ab], { type: 'image/png' });
+    const file = new File([blob], 'qbm-report.png', { type: 'image/png' });
+
+    if (btn) { btn.textContent = '📸 Share as Image'; btn.disabled = false; }
+
+    // Mobile: native share sheet
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: 'DJI QBM Monthly Report' }); return; }
+      catch (_) {}
+    }
+
+    // Desktop: copy + download + open WhatsApp Web
+    let copied = false;
+    try { await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]); copied = true; } catch (_) {}
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'qbm-report.png'; a.click();
+    window.open('https://web.whatsapp.com/', '_blank');
+    showToast(copied ? '✅ Copied! Paste in WhatsApp Web (Cmd+V).' : '✅ Image saved! Attach in WhatsApp Web.', 'success');
+
+  } catch (e) {
+    showToast('Could not generate image: ' + e.message, 'error');
+    if (btn) { btn.textContent = '📸 Share as Image'; btn.disabled = false; }
+  }
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y); ctx.arcTo(x + w, y, x + w, y + r, r);
+  ctx.lineTo(x + w, y + h - r); ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+  ctx.lineTo(x + r, y + h); ctx.arcTo(x, y + h, x, y + h - r, r);
+  ctx.lineTo(x, y + r); ctx.arcTo(x, y, x + r, y, r);
+  ctx.closePath();
+}
+
+function wrapText(ctx, text, x, y, maxW, lineH) {
+  const words = text.split(' ');
+  let line = '';
+  for (const word of words) {
+    const test = line ? line + ' ' + word : word;
+    if (ctx.measureText(test).width > maxW && line) {
+      ctx.fillText(line, x, y); y += lineH; line = word;
+    } else { line = test; }
+  }
+  if (line) ctx.fillText(line, x, y);
+  return y; // return final y for caller to place next element
+}
+
+function openModal(html) {
+  let c = document.getElementById('modal-container');
+  c.innerHTML = `<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal-box">${html}</div></div>`;
+}
+function closeModal() { document.getElementById('modal-container').innerHTML = ''; }
+
+function openSalesmanModal(name) {
+  const theirReviews = [...reviews].filter(r => r.salesman === name).sort((a,b) => new Date(b.date)-new Date(a.date));
+  const allTime = theirReviews.length;
+  const thisMonthRevs = theirReviews.filter(r => thisMonth(r.date));
+  const avg = allTime ? (theirReviews.reduce((s,r)=>s+(r.rating||0),0)/allTime).toFixed(1) : '—';
+  const cardsHtml = theirReviews.slice(0,20).map(r => buildReviewCard(r)).join('');
+  openModal(`
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title">${esc(name)}</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:1.25rem;">
+      <div class="stat-card" style="flex:1;min-width:100px;"><div class="stat-label">All Time</div><div class="stat-value">${allTime}</div></div>
+      <div class="stat-card" style="flex:1;min-width:100px;"><div class="stat-label">This Month</div><div class="stat-value">${thisMonthRevs.length}</div></div>
+      <div class="stat-card" style="flex:1;min-width:100px;"><div class="stat-label">Avg Rating</div><div class="stat-value">${avg}</div></div>
+    </div>
+    ${cardsHtml || '<p style="color:var(--muted);font-size:13px;">No reviews yet.</p>'}
+  `);
+}
+
+function openReportModal() {
+  const now = new Date();
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const label = monthNames[now.getMonth()] + ' ' + now.getFullYear();
+  const monthRevs = reviews.filter(r => thisMonth(r.date));
+  const avg = monthRevs.length ? (monthRevs.reduce((s,r)=>s+(r.rating||0),0)/monthRevs.length).toFixed(1) : '—';
+  const smStats = settings.salesmen.map(s => {
+    const revs = monthRevs.filter(r => r.salesman === s.name);
+    const smAvg = revs.length ? (revs.reduce((a,r)=>a+(r.rating||0),0)/revs.length).toFixed(1) : '—';
+    return { name: s.name, count: revs.length, avg: smAvg };
+  }).sort((a,b)=>b.count-a.count);
+  const topQuote = [...monthRevs].filter(r=>r.text&&r.rating>=4).sort((a,b)=>b.text.length-a.text.length)[0];
+  const lowRatings = monthRevs.filter(r => r.rating <= 2);
+  _reportData = { label, count: monthRevs.length, avg, smStats, topQuote, lowRatings };
+
+  let waText = `📊 *DJI QBM Monthly Report – ${label}*\n\n`;
+  waText += `⭐ Reviews this month: ${monthRevs.length}\n`;
+  waText += `📈 Average rating: ${avg}★\n\n`;
+  smStats.forEach(s => { waText += `• ${s.name}: ${s.count} reviews (${s.avg}★)\n`; });
+  if (topQuote) waText += `\n💬 _"${topQuote.text.slice(0,100)}${topQuote.text.length>100?'…':''}"_\n— ${topQuote.reviewer}`;
+
+  const smRows = smStats.map(s=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span style="font-weight:600;">${esc(s.name)}</span><span style="color:var(--muted);">${s.count} reviews · ${s.avg}★</span></div>`).join('');
+
+  openModal(`
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title">📊 ${label} Report</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:1.25rem;">
+      <div class="stat-card" style="flex:1;min-width:100px;"><div class="stat-label">Reviews</div><div class="stat-value">${monthRevs.length}</div></div>
+      <div class="stat-card" style="flex:1;min-width:100px;"><div class="stat-label">Avg Rating</div><div class="stat-value">${avg}${avg!=='—'?'★':''}</div></div>
+    </div>
+    <p class="panel-title" style="margin-bottom:8px;">Salesmen</p>
+    <div style="margin-bottom:1.25rem;">${smRows||'<p style="color:var(--muted);font-size:13px;">No data.</p>'}</div>
+    ${topQuote?`<div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:12px;margin-bottom:1rem;"><p style="font-size:12px;color:var(--muted);margin-bottom:4px;">Top quote this month</p><p style="font-size:13px;font-style:italic;color:rgba(255,255,255,0.8);">"${esc(topQuote.text)}"</p><p style="font-size:11px;color:var(--muted);margin-top:4px;">— ${esc(topQuote.reviewer)}</p></div>`:''}
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+      <button class="wa-btn" onclick="shareReportAsImage()" style="border:none;cursor:pointer;">📸 Share as Image</button>
+    </div>
+  `);
+}
+</script>
+</body>
+</html>
