@@ -144,6 +144,51 @@
     .btn-danger { background: #ef4444; color: #fff; }
     .btn-danger:hover:not(:disabled) { background: #dc2626; }
 
+    /* ── SELL-THROUGH ── */
+    .sellthrough-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+    @media (max-width: 800px) { .sellthrough-row { grid-template-columns: 1fr; } }
+    .section-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .section-sub {
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: rgba(255,255,255,0.4);
+    }
+    .chart-body { display: flex; flex-direction: column; gap: 0.65rem; min-height: 40px; }
+    .empty-mini { font-size: 0.8rem; color: rgba(255,255,255,0.35); padding: 0.5rem 0; }
+    .bar-row { display: flex; flex-direction: column; gap: 0.3rem; }
+    .bar-row-top { display: flex; justify-content: space-between; font-size: 0.8rem; gap: 0.5rem; }
+    .bar-row-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .bar-row-val { color: rgba(255,255,255,0.5); flex-shrink: 0; }
+    .bar-track { height: 8px; border-radius: 4px; background: rgba(255,255,255,0.06); overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #3b82f6, #60a5fa); transition: width 0.4s ease; }
+    .restock-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.6rem 0.75rem;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .restock-item.urgent { background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.25); }
+    .restock-name { font-weight: 600; font-size: 0.85rem; }
+    .restock-meta { font-size: 0.72rem; color: rgba(255,255,255,0.45); margin-top: 2px; }
+    .restock-qty { font-size: 0.85rem; font-weight: 700; color: #60a5fa; white-space: nowrap; }
+
     /* ── ALERT BANNER ── */
     .alert-banner {
       display: none;
@@ -536,9 +581,15 @@
         <input id="f-threshold" type="number" class="form-input" min="0" value="3" />
       </div>
     </div>
-    <div class="form-group">
-      <label class="form-label" for="f-price">Price (RM)</label>
-      <input id="f-price" type="number" class="form-input" min="0" step="0.01" placeholder="0.00" />
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="f-price">Price (RM)</label>
+        <input id="f-price" type="number" class="form-input" min="0" step="0.01" placeholder="0.00" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="f-velocity">Avg Units Sold / Week</label>
+        <input id="f-velocity" type="number" class="form-input" min="0" step="0.1" placeholder="0" />
+      </div>
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeItemModal()">Cancel</button>
@@ -632,6 +683,18 @@
     <ul class="alert-list" id="alert-list"></ul>
   </div>
 
+  <!-- SELL-THROUGH ROW -->
+  <div class="sellthrough-row" id="sellthrough-row">
+    <div class="card" id="bestsellers-card">
+      <div class="section-title">🏆 Best Sellers <span class="section-sub">by units sold / week</span></div>
+      <div id="bestsellers-chart" class="chart-body"></div>
+    </div>
+    <div class="card" id="restock-card">
+      <div class="section-title">📦 Restock Recommendations <span class="section-sub">~30d cover target</span></div>
+      <div id="restock-list" class="chart-body"></div>
+    </div>
+  </div>
+
   <!-- TABLE -->
   <div class="card table-wrap" style="padding:0;">
     <table>
@@ -643,6 +706,8 @@
           <th>Category</th>
           <th>Qty</th>
           <th>Threshold</th>
+          <th>Sell Rate</th>
+          <th>Days Left</th>
           <th>Price (RM)</th>
           <th>Last Updated</th>
           <th style="width:90px;">Actions</th>
@@ -807,13 +872,83 @@
     return s === 'out' ? 0 : s === 'low' ? 1 : 2;
   }
 
+  const TARGET_COVER_DAYS = 30; // how many days of stock we want on hand
+
+  function daysInStock(item) {
+    if (!item.firstAddedAt) return null;
+    return Math.max(0, Math.floor((Date.now() - new Date(item.firstAddedAt).getTime()) / 86400000));
+  }
+
+  function dailyVelocity(item) {
+    return (item.weeklyVelocity || 0) / 7;
+  }
+
+  function daysToSellOut(item) {
+    const v = dailyVelocity(item);
+    if (v <= 0) return null;
+    return Math.ceil((item.qty || 0) / v);
+  }
+
+  function reorderQty(item) {
+    const v = dailyVelocity(item);
+    if (v <= 0) return 0;
+    const needed = Math.ceil(v * TARGET_COVER_DAYS) - (item.qty || 0);
+    return Math.max(0, needed);
+  }
+
   /* ═══════════════════════════════════════════════
      RENDER
   ═══════════════════════════════════════════════ */
   function render() {
     updateStats();
     updateAlertBanner();
+    renderBestSellers();
+    renderRestock();
     renderTable();
+  }
+
+  function renderBestSellers() {
+    const el = document.getElementById('bestsellers-chart');
+    const top = items.filter(i => (i.weeklyVelocity || 0) > 0)
+      .sort((a, b) => b.weeklyVelocity - a.weeklyVelocity)
+      .slice(0, 6);
+    if (top.length === 0) {
+      el.innerHTML = `<div class="empty-mini">No sales velocity data yet — add "Avg Units Sold / Week" on a product to see it here.</div>`;
+      return;
+    }
+    const max = top[0].weeklyVelocity;
+    el.innerHTML = top.map(i => `
+      <div class="bar-row">
+        <div class="bar-row-top">
+          <span class="bar-row-name">${escHtml(i.name)}</span>
+          <span class="bar-row-val">${i.weeklyVelocity}/wk</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.max(4, (i.weeklyVelocity / max) * 100)}%"></div></div>
+      </div>
+    `).join('');
+  }
+
+  function renderRestock() {
+    const el = document.getElementById('restock-list');
+    const candidates = items
+      .filter(i => (i.weeklyVelocity || 0) > 0)
+      .map(i => ({ item: i, left: daysToSellOut(i), need: reorderQty(i) }))
+      .filter(x => x.need > 0)
+      .sort((a, b) => (a.left ?? 999) - (b.left ?? 999))
+      .slice(0, 6);
+    if (candidates.length === 0) {
+      el.innerHTML = `<div class="empty-mini">No restocks needed right now based on current sell-through.</div>`;
+      return;
+    }
+    el.innerHTML = candidates.map(({ item, left, need }) => `
+      <div class="restock-item ${left <= 7 ? 'urgent' : ''}">
+        <div>
+          <div class="restock-name">${escHtml(item.name)}</div>
+          <div class="restock-meta">${item.qty} left · sells out in ~${left}d</div>
+        </div>
+        <div class="restock-qty">+${need} units</div>
+      </div>
+    `).join('');
   }
 
   function updateStats() {
@@ -866,7 +1001,7 @@
     filtered.sort((a, b) => statusOrder(a) - statusOrder(b));
 
     if (filtered.length === 0) {
-      body.innerHTML = `<tr><td colspan="9">
+      body.innerHTML = `<tr><td colspan="11">
         <div class="empty-state">
           <div class="empty-icon">📦</div>
           <div>${items.length === 0 ? 'No products yet. Add your first product above.' : 'No products match your search.'}</div>
@@ -881,14 +1016,21 @@
       const qtyClass = status === 'out' ? 'qty-out' : status === 'low' ? 'qty-low' : 'qty-in';
       const price = item.price != null && item.price !== '' ? `RM ${Number(item.price).toFixed(2)}` : '—';
       const updated = item.updatedAt ? formatDate(item.updatedAt) : '—';
+      const age = daysInStock(item);
+      const sellRate = item.weeklyVelocity ? `${item.weeklyVelocity}/wk` : '—';
+      const left = daysToSellOut(item);
+      const leftClass = left == null ? '' : left <= 7 ? 'qty-out' : left <= 14 ? 'qty-low' : 'qty-in';
+      const leftText = left == null ? '—' : item.qty === 0 ? 'Out' : `${left}d`;
 
       return `<tr>
         <td style="text-align:center;"><span class="status-dot ${dotClass}"></span></td>
-        <td><strong>${escHtml(item.name)}</strong></td>
+        <td><strong>${escHtml(item.name)}</strong>${age != null ? `<div style="font-size:0.72rem;color:rgba(255,255,255,0.35);margin-top:2px;">in stock ${age}d</div>` : ''}</td>
         <td><span class="sku-text">${escHtml(item.sku || '—')}</span></td>
         <td><span class="cat-badge">${escHtml(item.category || 'Other')}</span></td>
         <td><span class="qty-text ${qtyClass}">${item.qty}</span></td>
         <td style="color:rgba(255,255,255,0.5);">${item.threshold ?? 3}</td>
+        <td style="color:rgba(255,255,255,0.6);">${sellRate}</td>
+        <td><span class="qty-text ${leftClass}">${leftText}</span></td>
         <td style="color:rgba(255,255,255,0.7);">${price}</td>
         <td style="color:rgba(255,255,255,0.4);font-size:0.8rem;">${updated}</td>
         <td>
@@ -926,6 +1068,7 @@
     document.getElementById('f-qty').value       = '0';
     document.getElementById('f-threshold').value = '3';
     document.getElementById('f-price').value     = '';
+    document.getElementById('f-velocity').value  = '';
     document.getElementById('item-modal').classList.add('visible');
     setTimeout(() => document.getElementById('f-name').focus(), 50);
   }
@@ -941,6 +1084,7 @@
     document.getElementById('f-qty').value       = item.qty ?? 0;
     document.getElementById('f-threshold').value = item.threshold ?? 3;
     document.getElementById('f-price').value     = item.price ?? '';
+    document.getElementById('f-velocity').value  = item.weeklyVelocity ?? '';
     document.getElementById('item-modal').classList.add('visible');
     setTimeout(() => document.getElementById('f-name').focus(), 50);
   }
@@ -961,6 +1105,7 @@
       qty:       parseInt(document.getElementById('f-qty').value) || 0,
       threshold: parseInt(document.getElementById('f-threshold').value) || 3,
       price:     parseFloat(document.getElementById('f-price').value) || null,
+      weeklyVelocity: parseFloat(document.getElementById('f-velocity').value) || 0,
     };
     if (editingItem) itemData.id = editingItem.id;
 
@@ -1045,7 +1190,7 @@
     if (lines.length < 2) return [];
 
     const header = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/[^a-z]/g, ''));
-    const colMap = { name:0, sku:1, category:2, qty:3, threshold:4, price:5 };
+    const colMap = { name:0, sku:1, category:2, qty:3, threshold:4, price:5, velocity:6 };
     // remap based on actual header
     const idx = {};
     for (const key of Object.keys(colMap)) {
@@ -1065,6 +1210,7 @@
         qty:       parseInt(cols[idx.qty]      || '0') || 0,
         threshold: parseInt(cols[idx.threshold] || '3') || 3,
         price:     parseFloat(cols[idx.price]  || '') || null,
+        weeklyVelocity: parseFloat(cols[idx.velocity] || '0') || 0,
       };
     }).filter(r => r.name);
   }
@@ -1130,7 +1276,7 @@
   ═══════════════════════════════════════════════ */
   function exportCSV() {
     if (items.length === 0) { showToast('No products to export', 'info'); return; }
-    const headers = ['name', 'sku', 'category', 'qty', 'threshold', 'price'];
+    const headers = ['name', 'sku', 'category', 'qty', 'threshold', 'price', 'velocity'];
     const rows = [
       headers.join(','),
       ...items.map(i => [
@@ -1140,6 +1286,7 @@
         i.qty ?? 0,
         i.threshold ?? 3,
         i.price != null ? i.price : '',
+        i.weeklyVelocity ?? 0,
       ].join(','))
     ];
     const csv = rows.join('\n');
