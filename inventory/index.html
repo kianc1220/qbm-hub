@@ -634,6 +634,44 @@
   </div>
 </div>
 
+<!-- KASSIE SALES + STOCK IMPORT MODAL -->
+<div class="modal-backdrop" id="kassie-modal">
+  <div class="modal" style="max-width:640px;">
+    <div class="modal-title">📊 Import Sales + Stock</div>
+    <p style="font-size:0.8rem;color:rgba(255,255,255,0.5);margin-bottom:1rem;line-height:1.5;">
+      Upload your Kassie <strong>Inventory Overview</strong> export (sets current stock) and optionally your
+      <strong>Customer Purchase Listing</strong> export (computes real sales velocity per product). Drop both at once or one at a time.
+    </p>
+    <div class="form-group">
+      <label class="form-label" for="f-inv-file">Inventory Overview CSV <span style="color:#ef4444">*</span></label>
+      <input id="f-inv-file" type="file" accept=".csv" class="form-input" style="padding:0.5rem;" />
+      <div id="f-inv-status" style="font-size:0.75rem;color:rgba(255,255,255,0.4);margin-top:4px;"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="f-sales-file">Customer Purchase Listing CSV (optional)</label>
+      <input id="f-sales-file" type="file" accept=".csv" class="form-input" style="padding:0.5rem;" />
+      <div id="f-sales-status" style="font-size:0.75rem;color:rgba(255,255,255,0.4);margin-top:4px;"></div>
+    </div>
+    <div class="import-warning">⚠ This will <strong>replace all</strong> current inventory data with this catalog.</div>
+    <div id="kassie-summary" style="display:none;">
+      <p class="preview-note" id="kassie-note"></p>
+      <div class="preview-wrap">
+        <table>
+          <thead>
+            <tr><th>Name</th><th>SKU</th><th>Qty</th><th>Sell Rate</th><th>2-Wk Need</th></tr>
+          </thead>
+          <tbody id="kassie-preview-body"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeKassieImport()">Cancel</button>
+      <button class="btn btn-blue" id="kassie-process-btn" onclick="processKassieFiles()">Process Files</button>
+      <button class="btn btn-blue" id="kassie-confirm-btn" style="display:none;" onclick="confirmKassieImport()">Confirm Import</button>
+    </div>
+  </div>
+</div>
+
 <!-- HIDDEN FILE INPUT -->
 <input type="file" id="csv-file-input" accept=".csv" />
 
@@ -673,6 +711,7 @@
       <option value="Other">Other</option>
     </select>
     <button class="btn btn-blue" onclick="openAddModal()">+ Add Product</button>
+    <button class="btn btn-ghost" onclick="openKassieImport()">📊 Import Sales + Stock</button>
     <button class="btn btn-ghost" onclick="triggerImport()">⬆ Import CSV</button>
     <button class="btn btn-ghost" onclick="exportCSV()">⬇ Export CSV</button>
   </div>
@@ -690,7 +729,7 @@
       <div id="bestsellers-chart" class="chart-body"></div>
     </div>
     <div class="card" id="restock-card">
-      <div class="section-title">📦 Restock Recommendations <span class="section-sub">~30d cover target</span></div>
+      <div class="section-title">📦 Restock Recommendations <span class="section-sub">2-week stock need</span></div>
       <div id="restock-list" class="chart-body"></div>
     </div>
   </div>
@@ -872,7 +911,7 @@
     return s === 'out' ? 0 : s === 'low' ? 1 : 2;
   }
 
-  const TARGET_COVER_DAYS = 30; // how many days of stock we want on hand
+  const TARGET_COVER_DAYS = 14; // how many days of stock we want on hand (2-week need)
 
   function daysInStock(item) {
     if (!item.firstAddedAt) return null;
@@ -1157,6 +1196,190 @@
       await loadItems();
     } catch (e) {
       if (e.message !== '401') showToast('Failed to delete product', 'error');
+    } finally {
+      hideLoading();
+    }
+  }
+
+  /* ═══════════════════════════════════════════════
+     KASSIE SALES + STOCK IMPORT
+  ═══════════════════════════════════════════════ */
+  const KASSIE_DATE_RE = /\d{4}-\d{2}-\d{2}/;
+  let kassieInvText = null, kassieSalesText = null, kassieMergedItems = null;
+
+  function openKassieImport() {
+    kassieInvText = null; kassieSalesText = null; kassieMergedItems = null;
+    document.getElementById('f-inv-file').value = '';
+    document.getElementById('f-sales-file').value = '';
+    document.getElementById('f-inv-status').textContent = '';
+    document.getElementById('f-sales-status').textContent = '';
+    document.getElementById('kassie-summary').style.display = 'none';
+    document.getElementById('kassie-process-btn').style.display = '';
+    document.getElementById('kassie-confirm-btn').style.display = 'none';
+    document.getElementById('kassie-modal').classList.add('visible');
+  }
+
+  function closeKassieImport() {
+    document.getElementById('kassie-modal').classList.remove('visible');
+  }
+
+  function readFileAsText(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = e => resolve(e.target.result);
+      reader.onerror = reject;
+      reader.readAsText(file);
+    });
+  }
+
+  function parseNum(s) {
+    return parseFloat(String(s || '0').replace(/,/g, '')) || 0;
+  }
+
+  // Inventory Overview export: SNo,ProductCode,Description,Brand,Category,Group,Material,SKU,Style1,Floor Price,Gender1,Colour,MYSIZE,Qty,Unit Price,Retail Value
+  function parseInventoryOverviewCSV(text) {
+    const lines = text.split(/\r?\n/);
+    const headerIdx = lines.findIndex(l => l.trim().startsWith('SNo,ProductCode'));
+    if (headerIdx === -1) return [];
+    const headers = splitCSVLine(lines[headerIdx]).map(h => h.trim());
+    const idx = {
+      code: headers.indexOf('ProductCode'),
+      desc: headers.indexOf('Description'),
+      category: headers.indexOf('Category'),
+      qty: headers.indexOf('Qty'),
+      price: headers.indexOf('Unit Price'),
+    };
+    const out = [];
+    for (let i = headerIdx + 1; i < lines.length; i++) {
+      const line = lines[i];
+      if (!line.trim()) continue;
+      const cols = splitCSVLine(line);
+      const code = (cols[idx.code] || '').trim();
+      const desc = (cols[idx.desc] || '').trim();
+      if (!code || !desc) continue;
+      out.push({
+        sku: code,
+        name: desc,
+        category: (cols[idx.category] || 'Other').trim() || 'Other',
+        qty: Math.round(parseNum(cols[idx.qty])),
+        threshold: 3,
+        price: parseNum(cols[idx.price]) || null,
+      });
+    }
+    return out;
+  }
+
+  // Customer Purchase Listing export: aggregate Qty sold per Product Code over the report period
+  function parseSalesVelocityCSV(text) {
+    const lines = text.split(/\r?\n/);
+    const headerIdx = lines.findIndex(l => l.trim().startsWith('Date,Invoice No.'));
+    if (headerIdx === -1) return { qtyByCode: {}, days: 90 };
+    const headers = splitCSVLine(lines[headerIdx]).map(h => h.trim());
+    const idx = {
+      date: headers.indexOf('Date'),
+      code: headers.indexOf('Product Code'),
+      qty: headers.indexOf('Qty'),
+    };
+    const qtyByCode = {};
+    let minDate = null, maxDate = null;
+    for (let i = headerIdx + 1; i < lines.length; i++) {
+      const line = lines[i];
+      if (!line.trim()) continue;
+      const cols = splitCSVLine(line);
+      const dateStr = (cols[idx.date] || '').trim();
+      if (!KASSIE_DATE_RE.test(dateStr)) continue; // skip blank/total subrows
+      const code = (cols[idx.code] || '').trim();
+      const qty = parseNum(cols[idx.qty]);
+      if (code && qty > 0) qtyByCode[code] = (qtyByCode[code] || 0) + qty;
+      const d = dateStr.slice(0, 10);
+      if (!minDate || d < minDate) minDate = d;
+      if (!maxDate || d > maxDate) maxDate = d;
+    }
+    const days = minDate && maxDate
+      ? Math.max(1, Math.round((new Date(maxDate) - new Date(minDate)) / 86400000))
+      : 90;
+    return { qtyByCode, days };
+  }
+
+  async function processKassieFiles() {
+    const invFile = document.getElementById('f-inv-file').files[0];
+    const salesFile = document.getElementById('f-sales-file').files[0];
+    if (!invFile) { showToast('Inventory Overview CSV is required', 'error'); return; }
+
+    document.getElementById('f-inv-status').textContent = 'Reading…';
+    if (salesFile) document.getElementById('f-sales-status').textContent = 'Reading…';
+
+    try {
+      kassieInvText = await readFileAsText(invFile);
+      const invItems = parseInventoryOverviewCSV(kassieInvText);
+      if (invItems.length === 0) {
+        showToast('Could not find Inventory Overview data in that file', 'error');
+        document.getElementById('f-inv-status').textContent = '';
+        return;
+      }
+      document.getElementById('f-inv-status').textContent = `✓ ${invItems.length} products found`;
+
+      let qtyByCode = {}, days = 90;
+      if (salesFile) {
+        kassieSalesText = await readFileAsText(salesFile);
+        const parsed = parseSalesVelocityCSV(kassieSalesText);
+        qtyByCode = parsed.qtyByCode; days = parsed.days;
+        const matched = Object.keys(qtyByCode).length;
+        if (matched === 0) {
+          document.getElementById('f-sales-status').textContent = '⚠ Could not find sales data in that file';
+        } else {
+          document.getElementById('f-sales-status').textContent = `✓ Sales for ${matched} products over ${days} days`;
+        }
+      }
+
+      const merged = invItems.map(item => {
+        const sold = qtyByCode[item.sku] || 0;
+        const weeklyVelocity = sold > 0 ? Math.round((sold / (days / 7)) * 10) / 10 : 0;
+        return { ...item, weeklyVelocity };
+      });
+      kassieMergedItems = merged;
+
+      const withVelocity = merged.filter(i => i.weeklyVelocity > 0).sort((a, b) => b.weeklyVelocity - a.weeklyVelocity);
+      const totalStock = merged.reduce((s, i) => s + i.qty, 0);
+      document.getElementById('kassie-note').textContent =
+        `${merged.length} products total · ${totalStock} units in stock · ${withVelocity.length} with sales velocity. Top sellers:`;
+
+      const preview = withVelocity.slice(0, 8);
+      document.getElementById('kassie-preview-body').innerHTML = preview.map(i => {
+        const v = i.weeklyVelocity / 7;
+        const need = Math.max(0, Math.ceil(v * TARGET_COVER_DAYS) - i.qty);
+        return `<tr>
+          <td>${escHtml(i.name)}</td>
+          <td class="sku-text">${escHtml(i.sku)}</td>
+          <td>${i.qty}</td>
+          <td>${i.weeklyVelocity}/wk</td>
+          <td>${need > 0 ? '+' + need : '—'}</td>
+        </tr>`;
+      }).join('') || `<tr><td colspan="5">No sales velocity data to preview</td></tr>`;
+
+      document.getElementById('kassie-summary').style.display = '';
+      document.getElementById('kassie-process-btn').style.display = 'none';
+      document.getElementById('kassie-confirm-btn').style.display = '';
+    } catch (e) {
+      showToast('Failed to parse files', 'error');
+      document.getElementById('f-inv-status').textContent = '';
+    }
+  }
+
+  async function confirmKassieImport() {
+    if (!kassieMergedItems || !kassieMergedItems.length) return;
+    const items = kassieMergedItems;
+    let pin;
+    try { pin = await requirePin(); } catch { return; }
+
+    showLoading();
+    try {
+      await apiPost('bulk', { pin, items });
+      closeKassieImport();
+      showToast(`Imported ${items.length} products from Kassie export`, 'success');
+      await loadItems();
+    } catch (e) {
+      if (e.message !== '401') showToast('Import failed', 'error');
     } finally {
       hideLoading();
     }
