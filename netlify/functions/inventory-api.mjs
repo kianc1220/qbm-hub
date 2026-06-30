@@ -13,7 +13,7 @@ export default async (req) => {
   try {
     if (req.method === 'GET') {
       if (action === 'list') {
-        const data = await store.get('items', { type: 'json' }).catch(() => [])
+        const data = (await store.get('items', { type: 'json' }).catch(() => [])) || []
         return new Response(JSON.stringify(Array.isArray(data) ? data : []), { headers: CORS })
       }
     }
@@ -23,7 +23,7 @@ export default async (req) => {
       if (body.pin !== PIN) return new Response(JSON.stringify({ error: 'Wrong PIN' }), { headers: CORS, status: 401 })
 
       if (action === 'save') {
-        const items = await store.get('items', { type: 'json' }).catch(() => [])
+        const items = (await store.get('items', { type: 'json' }).catch(() => [])) || []
         const item = { ...body.item, updatedAt: new Date().toISOString() }
         if (!item.id) item.id = `item_${Date.now()}`
         const idx = items.findIndex(i => i.id === item.id)
@@ -39,7 +39,7 @@ export default async (req) => {
       }
 
       if (action === 'delete') {
-        const items = await store.get('items', { type: 'json' }).catch(() => [])
+        const items = (await store.get('items', { type: 'json' }).catch(() => [])) || []
         await store.setJSON('items', items.filter(i => i.id !== body.id))
         return new Response(JSON.stringify({ ok: true }), { headers: CORS })
       }
