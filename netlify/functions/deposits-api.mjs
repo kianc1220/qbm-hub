@@ -107,6 +107,20 @@ export default async (req) => {
         await store.setJSON('deposits', deposits.filter(d => d.id !== id))
         return new Response(JSON.stringify({ ok: true }), { headers: CORS })
       }
+
+      // One-shot cleanup: dedupe by invoiceNo, keeping the most recently added copy
+      if (action === 'dedupe') {
+        const deposits = await getDeposits()
+        const byInv = new Map()
+        for (const d of deposits) {
+          if (!d.invoiceNo) { byInv.set(d.id, d); continue }
+          const existing = byInv.get(d.invoiceNo)
+          if (!existing || new Date(d.addedAt) > new Date(existing.addedAt)) byInv.set(d.invoiceNo, d)
+        }
+        const deduped = [...byInv.values()]
+        await store.setJSON('deposits', deduped)
+        return new Response(JSON.stringify({ ok: true, before: deposits.length, after: deduped.length, removed: deposits.length - deduped.length }), { headers: CORS })
+      }
     }
 
     return new Response(JSON.stringify({ error: 'Not found' }), { headers: CORS, status: 404 })
