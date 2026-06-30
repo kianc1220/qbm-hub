@@ -147,11 +147,12 @@
     /* ── SELL-THROUGH ── */
     .sellthrough-row {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(3, 1fr);
       gap: 1rem;
       margin-bottom: 1.25rem;
     }
-    @media (max-width: 800px) { .sellthrough-row { grid-template-columns: 1fr; } }
+    @media (max-width: 1100px) { .sellthrough-row { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 700px) { .sellthrough-row { grid-template-columns: 1fr; } }
     .section-title {
       font-size: 0.95rem;
       font-weight: 700;
@@ -732,6 +733,10 @@
       <div class="section-title">📦 Restock Recommendations <span class="section-sub">2-week stock need</span></div>
       <div id="restock-list" class="chart-body"></div>
     </div>
+    <div class="card" id="slowmoving-card">
+      <div class="section-title">🐌 Slow-Moving Stock <span class="section-sub">sitting unsold</span></div>
+      <div id="slowmoving-list" class="chart-body"></div>
+    </div>
   </div>
 
   <!-- TABLE -->
@@ -935,6 +940,28 @@
     return Math.max(0, needed);
   }
 
+  const STALE_DAYS = 14; // flag stock as slow-moving if unsold for this many days
+
+  function daysSinceLastSale(item) {
+    if (!item.lastSoldAt) return null;
+    return Math.max(0, Math.floor((Date.now() - new Date(item.lastSoldAt).getTime()) / 86400000));
+  }
+
+  // Returns { days, label } if this item counts as slow-moving stock, else null.
+  // Only flags items that actually have stock on hand AND we have sales-record evidence either way.
+  function staleInfo(item) {
+    if (!item.qty || item.qty <= 0) return null;
+    if (item.lastSoldAt) {
+      const d = daysSinceLastSale(item);
+      if (d >= STALE_DAYS) return { days: d, label: `Last sold ${d}d ago` };
+      return null;
+    }
+    if (item.salesRecordEnd) {
+      return { days: Infinity, label: 'No sales on record' };
+    }
+    return null; // no sales import yet — not enough data to judge
+  }
+
   /* ═══════════════════════════════════════════════
      RENDER
   ═══════════════════════════════════════════════ */
@@ -943,6 +970,7 @@
     updateAlertBanner();
     renderBestSellers();
     renderRestock();
+    renderSlowMoving();
     renderTable();
   }
 
@@ -969,23 +997,49 @@
 
   function renderRestock() {
     const el = document.getElementById('restock-list');
-    const candidates = items
+    const all = items
       .filter(i => (i.weeklyVelocity || 0) > 0)
       .map(i => ({ item: i, left: daysToSellOut(i), need: reorderQty(i) }))
       .filter(x => x.need > 0)
-      .sort((a, b) => (a.left ?? 999) - (b.left ?? 999))
-      .slice(0, 6);
-    if (candidates.length === 0) {
-      el.innerHTML = `<div class="empty-mini">No restocks needed right now based on current sell-through.</div>`;
+      .sort((a, b) => (a.left ?? 999) - (b.left ?? 999));
+    if (all.length === 0) {
+      el.innerHTML = `<div class="empty-mini">No restocks needed right now — current stock can cover the next ${TARGET_COVER_DAYS} days.</div>`;
       return;
     }
-    el.innerHTML = candidates.map(({ item, left, need }) => `
+    const totalNeed = all.reduce((s, x) => s + x.need, 0);
+    const summary = `<div class="empty-mini" style="color:rgba(255,255,255,0.6);margin-bottom:0.2rem;">
+      <strong style="color:#60a5fa;">${totalNeed} units</strong> needed across ${all.length} product${all.length !== 1 ? 's' : ''} to last the next ${TARGET_COVER_DAYS} days
+    </div>`;
+    const rows = all.slice(0, 6).map(({ item, left, need }) => `
       <div class="restock-item ${left <= 7 ? 'urgent' : ''}">
         <div>
           <div class="restock-name">${escHtml(item.name)}</div>
           <div class="restock-meta">${item.qty} left · sells out in ~${left}d</div>
         </div>
         <div class="restock-qty">+${need} units</div>
+      </div>
+    `).join('');
+    el.innerHTML = summary + rows;
+  }
+
+  function renderSlowMoving() {
+    const el = document.getElementById('slowmoving-list');
+    const flagged = items
+      .map(i => ({ item: i, info: staleInfo(i) }))
+      .filter(x => x.info)
+      .sort((a, b) => b.info.days - a.info.days)
+      .slice(0, 6);
+    if (flagged.length === 0) {
+      el.innerHTML = `<div class="empty-mini">No slow-moving stock detected yet — import sales history to check.</div>`;
+      return;
+    }
+    el.innerHTML = flagged.map(({ item, info }) => `
+      <div class="restock-item">
+        <div>
+          <div class="restock-name">${escHtml(item.name)}</div>
+          <div class="restock-meta">${item.qty} in stock · ${info.label}</div>
+        </div>
+        <div class="restock-qty" style="color:#f59e0b;">${item.qty}u</div>
       </div>
     `).join('');
   }
@@ -1273,14 +1327,14 @@
   function parseSalesVelocityCSV(text) {
     const lines = text.split(/\r?\n/);
     const headerIdx = lines.findIndex(l => l.trim().startsWith('Date,Invoice No.'));
-    if (headerIdx === -1) return { qtyByCode: {}, days: 90 };
+    if (headerIdx === -1) return { qtyByCode: {}, lastSoldByCode: {}, days: 90, reportEnd: null };
     const headers = splitCSVLine(lines[headerIdx]).map(h => h.trim());
     const idx = {
       date: headers.indexOf('Date'),
       code: headers.indexOf('Product Code'),
       qty: headers.indexOf('Qty'),
     };
-    const qtyByCode = {};
+    const qtyByCode = {}, lastSoldByCode = {};
     let minDate = null, maxDate = null;
     for (let i = headerIdx + 1; i < lines.length; i++) {
       const line = lines[i];
@@ -1290,15 +1344,18 @@
       if (!KASSIE_DATE_RE.test(dateStr)) continue; // skip blank/total subrows
       const code = (cols[idx.code] || '').trim();
       const qty = parseNum(cols[idx.qty]);
-      if (code && qty > 0) qtyByCode[code] = (qtyByCode[code] || 0) + qty;
       const d = dateStr.slice(0, 10);
+      if (code && qty > 0) {
+        qtyByCode[code] = (qtyByCode[code] || 0) + qty;
+        if (!lastSoldByCode[code] || d > lastSoldByCode[code]) lastSoldByCode[code] = d;
+      }
       if (!minDate || d < minDate) minDate = d;
       if (!maxDate || d > maxDate) maxDate = d;
     }
     const days = minDate && maxDate
       ? Math.max(1, Math.round((new Date(maxDate) - new Date(minDate)) / 86400000))
       : 90;
-    return { qtyByCode, days };
+    return { qtyByCode, lastSoldByCode, days, reportEnd: maxDate };
   }
 
   async function processKassieFiles() {
@@ -1319,11 +1376,12 @@
       }
       document.getElementById('f-inv-status').textContent = `✓ ${invItems.length} products found`;
 
-      let qtyByCode = {}, days = 90;
+      let qtyByCode = {}, lastSoldByCode = {}, days = 90, reportEnd = null;
       if (salesFile) {
         kassieSalesText = await readFileAsText(salesFile);
         const parsed = parseSalesVelocityCSV(kassieSalesText);
-        qtyByCode = parsed.qtyByCode; days = parsed.days;
+        qtyByCode = parsed.qtyByCode; lastSoldByCode = parsed.lastSoldByCode;
+        days = parsed.days; reportEnd = parsed.reportEnd;
         const matched = Object.keys(qtyByCode).length;
         if (matched === 0) {
           document.getElementById('f-sales-status').textContent = '⚠ Could not find sales data in that file';
@@ -1335,7 +1393,12 @@
       const merged = invItems.map(item => {
         const sold = qtyByCode[item.sku] || 0;
         const weeklyVelocity = sold > 0 ? Math.round((sold / (days / 7)) * 10) / 10 : 0;
-        return { ...item, weeklyVelocity };
+        return {
+          ...item,
+          weeklyVelocity,
+          lastSoldAt: lastSoldByCode[item.sku] || null,
+          salesRecordEnd: reportEnd, // date the sales report covers up to — used to judge staleness when never sold
+        };
       });
       kassieMergedItems = merged;
 
