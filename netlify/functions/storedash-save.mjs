@@ -10,7 +10,7 @@ export default async (req) => {
   if (req.method !== 'POST') return new Response(JSON.stringify({ error: 'Method not allowed' }), { headers: CORS, status: 405 })
 
   try {
-    const { csvText, key, filename, outlet, period, totalTx } = await req.json()
+    const { csvText, key, filename, outlet, period, totalTx, revenue } = await req.json()
 
     const saveKey = process.env.STOREDASH_SAVE_KEY || 'QBM12345'
     if (key !== saveKey) return new Response(JSON.stringify({ error: 'Wrong PIN' }), { headers: CORS, status: 401 })
@@ -29,6 +29,7 @@ export default async (req) => {
       outlet: outlet || '',
       period: period || '',
       totalTx: totalTx || null,
+      revenue: revenue || null,
       size: csvText.length,
       savedAt: new Date().toISOString(),
     }

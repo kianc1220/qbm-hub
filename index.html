@@ -301,14 +301,14 @@
     }
 
     .stat-val {
-      font-size: 24px;
+      font-size: 22px;
       font-weight: 900;
       letter-spacing: -0.03em;
       color: var(--text);
       line-height: 1;
     }
     .stat-val.green { color: #10b981; }
-    .stat-val.purple { color: #a78bfa; }
+    .stat-val.loading { color: var(--muted); font-size: 18px; }
 
     .stat-key {
       font-size: 10px;
@@ -316,6 +316,14 @@
       color: var(--muted);
       text-transform: uppercase;
       letter-spacing: 0.08em;
+    }
+
+    .stat-period {
+      font-size: 9px;
+      color: var(--muted);
+      opacity: 0.7;
+      letter-spacing: 0.04em;
+      min-height: 11px;
     }
 
     /* ── TOOLS GRID ── */
@@ -559,8 +567,9 @@
       .overview-desc { font-size: 12px; }
       .overview-stats { width: 100%; gap: 8px; }
       .stat-chip { flex: 1; padding: 10px 8px; min-width: 0; border-radius: 11px; }
-      .stat-val { font-size: 20px; }
+      .stat-val { font-size: 17px; }
       .stat-key { font-size: 9px; }
+      .stat-period { font-size: 8px; }
       .tools-section { padding: 0 0.85rem 64px; }
       .tools-grid { grid-template-columns: 1fr; gap: 10px; }
       .tools-grid > .tool-card:nth-last-child(2):nth-child(3n+1),
@@ -814,16 +823,24 @@
       </div>
       <div class="overview-stats">
         <div class="stat-chip">
-          <span class="stat-val">5</span>
-          <span class="stat-key">Tools</span>
+          <span class="stat-val loading" id="stat-sales">—</span>
+          <span class="stat-key">Sales</span>
+          <span class="stat-period" id="stat-sales-period">&nbsp;</span>
         </div>
         <div class="stat-chip">
-          <span class="stat-val green">3</span>
-          <span class="stat-key">Live</span>
+          <span class="stat-val loading" id="stat-deposits">—</span>
+          <span class="stat-key">Deposits</span>
+          <span class="stat-period">This month</span>
         </div>
         <div class="stat-chip">
-          <span class="stat-val purple">2</span>
-          <span class="stat-key">Beta</span>
+          <span class="stat-val loading" id="stat-stock">—</span>
+          <span class="stat-key">Stock</span>
+          <span class="stat-period">Units</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-val loading" id="stat-workshops">—</span>
+          <span class="stat-key">Workshops</span>
+          <span class="stat-period">Total</span>
         </div>
       </div>
     </div>
@@ -1003,6 +1020,57 @@
       });
     }, { threshold: 0.3 });
     document.querySelectorAll('.coming-strip, .section-label').forEach(el => stripObserver.observe(el));
+
+    // Overview live stats
+    (function () {
+      function fmtK(n) {
+        if (n >= 100000) return (n / 1000).toFixed(0) + 'K'
+        if (n >= 10000)  return (n / 1000).toFixed(1) + 'K'
+        return n.toLocaleString()
+      }
+      function setVal(id, val) {
+        const el = document.getElementById(id)
+        if (el) { el.textContent = val; el.classList.remove('loading') }
+      }
+
+      // 1. Deposits this month
+      fetch('/.netlify/functions/deposits-api?action=list')
+        .then(r => r.json()).then(list => {
+          const now = new Date()
+          const count = (list || []).filter(d => {
+            const t = new Date(d.addedAt)
+            return t.getFullYear() === now.getFullYear() && t.getMonth() === now.getMonth()
+          }).length
+          setVal('stat-deposits', count)
+        }).catch(() => setVal('stat-deposits', '—'))
+
+      // 2. Inventory stock units
+      fetch('/.netlify/functions/inventory-api?action=list')
+        .then(r => r.json()).then(items => {
+          const total = (items || []).reduce((s, i) => s + (i.qty || 0), 0)
+          setVal('stat-stock', fmtK(total))
+        }).catch(() => setVal('stat-stock', '—'))
+
+      // 3. Workshops — count cards in workshop index
+      fetch('/workshop/index.html')
+        .then(r => r.text()).then(html => {
+          const count = (html.match(/class="workshop-card"/g) || []).length
+          setVal('stat-workshops', count || '—')
+        }).catch(() => setVal('stat-workshops', '—'))
+
+      // 4. Sales — most recent saved StoreDash file with revenue
+      fetch('/.netlify/functions/storedash-load?meta=true')
+        .then(r => r.json()).then(files => {
+          const latest = (files || []).find(f => f.revenue)
+          if (latest) {
+            setVal('stat-sales', 'RM ' + fmtK(latest.revenue))
+            const p = document.getElementById('stat-sales-period')
+            if (p) p.textContent = latest.period || latest.outlet || ''
+          } else {
+            setVal('stat-sales', '—')
+          }
+        }).catch(() => setVal('stat-sales', '—'))
+    })()
 
     // Last deployed timestamp
     fetch('/.netlify/functions/site-info').then(r => r.json()).then(d => {
