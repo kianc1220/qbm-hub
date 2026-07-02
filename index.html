@@ -241,9 +241,8 @@
       border-radius: 20px;
       padding: 28px 32px;
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 24px;
+      flex-direction: column;
+      gap: 20px;
       position: relative;
       overflow: hidden;
     }
@@ -254,6 +253,13 @@
       width: 240px; height: 100%;
       background: linear-gradient(135deg, rgba(37,99,235,0.08) 0%, transparent 70%);
       pointer-events: none;
+    }
+
+    .overview-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
     }
 
     .overview-left { flex: 1; min-width: 0; }
@@ -282,10 +288,22 @@
       line-height: 1.55;
     }
 
-    .overview-stats {
-      display: flex;
-      gap: 12px;
+    .overview-badge {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--blue-bright);
+      background: rgba(37,99,235,0.1);
+      border: 1px solid rgba(37,99,235,0.2);
+      border-radius: 20px;
+      padding: 4px 12px;
+      white-space: nowrap;
       flex-shrink: 0;
+    }
+
+    .overview-stats {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
     }
 
     .stat-chip {
@@ -295,8 +313,7 @@
       background: var(--surface2);
       border: 1px solid var(--border);
       border-radius: 14px;
-      padding: 14px 20px;
-      min-width: 72px;
+      padding: 14px 10px;
       gap: 4px;
     }
 
@@ -562,14 +579,16 @@
       .hero-title { font-size: 34px; margin-bottom: 10px; }
       .hero-clock { font-size: 11px; }
       .overview-section { padding: 0 0.85rem; margin-bottom: 20px; }
-      .overview-card { flex-direction: column; align-items: flex-start; padding: 20px 20px; border-radius: 16px; gap: 16px; }
+      .overview-card { padding: 20px 20px; border-radius: 16px; gap: 14px; }
+      .overview-top { flex-wrap: wrap; }
+      .overview-badge { display: none; }
       .overview-title { font-size: 17px; }
       .overview-desc { font-size: 12px; }
-      .overview-stats { width: 100%; gap: 8px; }
-      .stat-chip { flex: 1; padding: 10px 8px; min-width: 0; border-radius: 11px; }
-      .stat-val { font-size: 17px; }
-      .stat-key { font-size: 9px; }
-      .stat-period { font-size: 8px; }
+      .overview-stats { grid-template-columns: repeat(5, 1fr); gap: 6px; }
+      .stat-chip { padding: 10px 4px; border-radius: 10px; }
+      .stat-val { font-size: 15px; }
+      .stat-key { font-size: 8px; }
+      .stat-period { font-size: 7px; }
       .tools-section { padding: 0 0.85rem 64px; }
       .tools-grid { grid-template-columns: 1fr; gap: 10px; }
       .tools-grid > .tool-card:nth-last-child(2):nth-child(3n+1),
@@ -816,10 +835,13 @@
   <!-- OVERVIEW -->
   <div class="overview-section">
     <div class="overview-card">
-      <div class="overview-left">
-        <div class="overview-eyebrow">Hub Overview</div>
-        <div class="overview-title">Your operator workspace</div>
-        <div class="overview-desc">All internal tools for DJI Queensbay Mall — sales analytics, deposits, workshops, reviews, and inventory management in one place.</div>
+      <div class="overview-top">
+        <div class="overview-left">
+          <div class="overview-eyebrow">Hub Overview</div>
+          <div class="overview-title">Your operator workspace</div>
+          <div class="overview-desc">All internal tools for DJI Queensbay Mall — sales analytics, deposits, workshops, reviews, and inventory in one place.</div>
+        </div>
+        <span class="overview-badge">5 Tools Active</span>
       </div>
       <div class="overview-stats">
         <div class="stat-chip">
@@ -830,6 +852,11 @@
         <div class="stat-chip">
           <span class="stat-val loading" id="stat-deposits">—</span>
           <span class="stat-key">Deposits</span>
+          <span class="stat-period">This month</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-val loading" id="stat-reviews">—</span>
+          <span class="stat-key">Reviews</span>
           <span class="stat-period">This month</span>
         </div>
         <div class="stat-chip">
@@ -1024,52 +1051,78 @@
     // Overview live stats
     (function () {
       function fmtK(n) {
-        if (n >= 100000) return (n / 1000).toFixed(0) + 'K'
-        if (n >= 10000)  return (n / 1000).toFixed(1) + 'K'
+        if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M'
+        if (n >= 100000)  return (n / 1000).toFixed(0) + 'K'
+        if (n >= 10000)   return (n / 1000).toFixed(1) + 'K'
         return n.toLocaleString()
       }
       function setVal(id, val) {
         const el = document.getElementById(id)
         if (el) { el.textContent = val; el.classList.remove('loading') }
       }
+      function setPeriod(id, val) {
+        const el = document.getElementById(id)
+        if (el) el.textContent = val
+      }
 
-      // 1. Deposits this month
+      const now = new Date()
+      const thisYM = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0')
+
+      // 1. Sales — from meta; fall back to parsing CSV header if revenue missing
+      fetch('/.netlify/functions/storedash-load?meta=true')
+        .then(r => r.json()).then(async files => {
+          const sorted = (files || []).sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt))
+          const withRev = sorted.find(f => f.revenue)
+          if (withRev) {
+            setVal('stat-sales', 'RM ' + fmtK(withRev.revenue))
+            const label = (withRev.period || '').match(/(\d{4}-\d{2})/)?.[1] || withRev.outlet || ''
+            setPeriod('stat-sales-period', label)
+            return
+          }
+          // Fallback: parse Total Sales from the latest CSV
+          const latest = sorted[0]
+          if (!latest) { setVal('stat-sales', '—'); return }
+          try {
+            const csv = await fetch('/.netlify/functions/storedash-load?key=' + encodeURIComponent(latest.key)).then(r => r.text())
+            const m = csv.match(/Total Sales\s*:\s*\(MYR\)([\d.,]+)/i)
+            if (m) {
+              const rev = Math.round(parseFloat(m[1].replace(/,/g, '')))
+              setVal('stat-sales', 'RM ' + fmtK(rev))
+              const label = (latest.period || '').match(/(\d{4}-\d{2})/)?.[1] || ''
+              setPeriod('stat-sales-period', label)
+            } else {
+              setVal('stat-sales', '—')
+            }
+          } catch { setVal('stat-sales', '—') }
+        }).catch(() => setVal('stat-sales', '—'))
+
+      // 2. Deposits this month
       fetch('/.netlify/functions/deposits-api?action=list')
         .then(r => r.json()).then(list => {
-          const now = new Date()
-          const count = (list || []).filter(d => {
-            const t = new Date(d.addedAt)
-            return t.getFullYear() === now.getFullYear() && t.getMonth() === now.getMonth()
-          }).length
+          const count = (list || []).filter(d => (d.addedAt || '').startsWith(thisYM)).length
           setVal('stat-deposits', count)
         }).catch(() => setVal('stat-deposits', '—'))
 
-      // 2. Inventory stock units
+      // 3. Reviews this month
+      fetch('/.netlify/functions/reviews-api?action=list')
+        .then(r => r.json()).then(list => {
+          const count = (list || []).filter(r => (r.date || '').startsWith(thisYM)).length
+          setVal('stat-reviews', count)
+        }).catch(() => setVal('stat-reviews', '—'))
+
+      // 4. Inventory stock units
       fetch('/.netlify/functions/inventory-api?action=list')
         .then(r => r.json()).then(items => {
           const total = (items || []).reduce((s, i) => s + (i.qty || 0), 0)
           setVal('stat-stock', fmtK(total))
         }).catch(() => setVal('stat-stock', '—'))
 
-      // 3. Workshops — count cards in workshop index
+      // 5. Workshops — count cards in workshop index
       fetch('/workshop/index.html')
         .then(r => r.text()).then(html => {
           const count = (html.match(/class="workshop-card"/g) || []).length
-          setVal('stat-workshops', count || '—')
+          setVal('stat-workshops', count || 0)
         }).catch(() => setVal('stat-workshops', '—'))
-
-      // 4. Sales — most recent saved StoreDash file with revenue
-      fetch('/.netlify/functions/storedash-load?meta=true')
-        .then(r => r.json()).then(files => {
-          const latest = (files || []).find(f => f.revenue)
-          if (latest) {
-            setVal('stat-sales', 'RM ' + fmtK(latest.revenue))
-            const p = document.getElementById('stat-sales-period')
-            if (p) p.textContent = latest.period || latest.outlet || ''
-          } else {
-            setVal('stat-sales', '—')
-          }
-        }).catch(() => setVal('stat-sales', '—'))
     })()
 
     // Last deployed timestamp

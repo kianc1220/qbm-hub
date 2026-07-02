@@ -10,11 +10,15 @@ export default async (req) => {
   if (req.method !== 'POST') return new Response(JSON.stringify({ error: 'Method not allowed' }), { headers: CORS, status: 405 })
 
   try {
-    const { csvText, key, filename, outlet, period, totalTx, revenue } = await req.json()
+    const { csvText, key, filename, outlet, period, totalTx, revenue: clientRevenue } = await req.json()
 
     const saveKey = process.env.STOREDASH_SAVE_KEY || 'QBM12345'
     if (key !== saveKey) return new Response(JSON.stringify({ error: 'Wrong PIN' }), { headers: CORS, status: 401 })
     if (!csvText) return new Response(JSON.stringify({ error: 'No CSV data' }), { headers: CORS, status: 400 })
+
+    // Parse revenue from CSV header: "Total Sales : (MYR)123456.78"
+    const revMatch = csvText.match(/Total Sales\s*:\s*\(MYR\)([\d.,]+)/i)
+    const revenue = revMatch ? Math.round(parseFloat(revMatch[1].replace(/,/g, ''))) : (clientRevenue || null)
 
     // Slug the filename into a safe blob key
     const slugKey = 'file-' + (filename || 'report')
