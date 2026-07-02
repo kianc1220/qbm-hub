@@ -673,6 +673,41 @@
     }
     #maint-screen .ml { margin-top: 26px; font-size: 12px; color: rgba(255,255,255,.35); cursor: pointer; text-decoration: underline; background: none; border: none; font-family: inherit; }
 
+    /* ── NAV SEARCH ── */
+    .nav-search {
+      flex: 1; max-width: 340px; margin: 0 18px;
+      position: relative; display: flex; align-items: center;
+    }
+    .nav-search svg {
+      position: absolute; left: 11px; width: 13px; height: 13px;
+      stroke: var(--muted); pointer-events: none;
+    }
+    .nav-search input {
+      width: 100%; padding: 7px 12px 7px 32px; border-radius: 9px;
+      border: 1px solid var(--border); background: var(--surface2);
+      color: var(--text); font-size: 12px; font-family: inherit; outline: none;
+      transition: border-color .18s;
+    }
+    .nav-search input:focus { border-color: rgba(96,165,250,0.4); }
+    .nav-search input::placeholder { color: var(--muted); }
+
+    /* ── DESKTOP: PERSISTENT SIDEBAR ── */
+    @media (min-width: 961px) {
+      .sidebar {
+        transform: translateX(0);
+        box-shadow: none;
+      }
+      .sidebar-backdrop { display: none; }
+      .sidebar-close { display: none; }
+      .menu-btn { display: none; }
+      body { padding-left: 280px; }
+      nav { left: 280px; padding: 0 1.5rem; }
+      .hero { padding-top: 110px; }
+    }
+    @media (max-width: 960px) {
+      .nav-search { display: none; }
+    }
+
     /* ── RESPONSIVE ── */
     @media (max-width: 640px) {
       nav { padding: 0 0.85rem; height: 52px; }
@@ -963,6 +998,10 @@
         <span class="nav-name">DJI <span>QBM</span> Operator Hub</span>
       </a>
     </div>
+    <div class="nav-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input type="text" id="tool-search" placeholder="Search tools…" autocomplete="off" />
+    </div>
     <div class="nav-right">
 
       <a href="/workshop/" class="nav-btn" style="background:rgba(37,99,235,0.12);color:var(--blue-bright);border:1px solid rgba(37,99,235,0.28);">
@@ -1222,6 +1261,16 @@
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSidebar(); });
     document.getElementById('sidebar-logout').addEventListener('click', doLogout);
     document.getElementById('sidebar-refresh').addEventListener('click', e => { e.preventDefault(); location.reload(); });
+
+    // ── Tool search filter ──
+    document.getElementById('tool-search').addEventListener('input', e => {
+      const q = e.target.value.trim().toLowerCase();
+      document.querySelectorAll('.tool-card').forEach(card => {
+        const name = card.querySelector('.tool-card-name')?.textContent.toLowerCase() || '';
+        const desc = card.querySelector('.tool-card-desc')?.textContent.toLowerCase() || '';
+        card.style.display = (!q || name.includes(q) || desc.includes(q)) ? '' : 'none';
+      });
+    });
 
     // Live clock
     function tick() {
