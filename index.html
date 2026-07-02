@@ -226,6 +226,98 @@
       letter-spacing: 0.05em;
     }
 
+    /* ── OVERVIEW ── */
+    .overview-section {
+      position: relative;
+      z-index: 1;
+      max-width: 860px;
+      margin: 0 auto 32px;
+      padding: 0 1.5rem;
+    }
+
+    .overview-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .overview-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 240px; height: 100%;
+      background: linear-gradient(135deg, rgba(37,99,235,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .overview-left { flex: 1; min-width: 0; }
+
+    .overview-eyebrow {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--blue-bright);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      opacity: 0.8;
+    }
+
+    .overview-title {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .overview-desc {
+      font-size: 13px;
+      color: var(--muted2);
+      line-height: 1.55;
+    }
+
+    .overview-stats {
+      display: flex;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .stat-chip {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 20px;
+      min-width: 72px;
+      gap: 4px;
+    }
+
+    .stat-val {
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      line-height: 1;
+    }
+    .stat-val.green { color: #10b981; }
+    .stat-val.purple { color: #a78bfa; }
+
+    .stat-key {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
     /* ── TOOLS GRID ── */
     .tools-section {
       position: relative;
@@ -455,12 +547,20 @@
       .nav-btn { font-size: 11px; padding: 5px 10px; gap: 3px; border-radius: 6px; }
       .nav-btn svg { width: 10px; height: 10px; }
       .nav-right { gap: 6px; }
-      .hero { padding: 82px 1rem 32px; }
+      .hero { padding: 82px 1rem 24px; }
       .hero::before { width: 300px; height: 180px; }
       .hero-eyebrow { font-size: 10px; padding: 4px 11px; margin-bottom: 14px; }
       .hero-greeting { font-size: 12px; margin-bottom: 6px; }
       .hero-title { font-size: 34px; margin-bottom: 10px; }
       .hero-clock { font-size: 11px; }
+      .overview-section { padding: 0 0.85rem; margin-bottom: 20px; }
+      .overview-card { flex-direction: column; align-items: flex-start; padding: 20px 20px; border-radius: 16px; gap: 16px; }
+      .overview-title { font-size: 17px; }
+      .overview-desc { font-size: 12px; }
+      .overview-stats { width: 100%; gap: 8px; }
+      .stat-chip { flex: 1; padding: 10px 8px; min-width: 0; border-radius: 11px; }
+      .stat-val { font-size: 20px; }
+      .stat-key { font-size: 9px; }
       .tools-section { padding: 0 0.85rem 64px; }
       .tools-grid { grid-template-columns: 1fr; gap: 10px; }
       .tools-grid > .tool-card:nth-last-child(2):nth-child(3n+1),
@@ -498,6 +598,10 @@
     .hero-greeting { animation: fadeSlideUp 0.55s cubic-bezier(.22,1,.36,1) 0.12s both; }
     .hero-title    { animation: fadeSlideUp 0.65s cubic-bezier(.22,1,.36,1) 0.18s both; }
     .hero-clock    { animation: fadeSlideUp 0.55s cubic-bezier(.22,1,.36,1) 0.28s both; }
+
+    /* Overview card */
+    .overview-card { opacity: 0; transform: translateY(16px); }
+    .overview-card.anim-in { animation: fadeSlideUp 0.6s cubic-bezier(.22,1,.36,1) 0.05s both; }
 
     /* Tool cards — revealed by IntersectionObserver */
     .tool-card { opacity: 0; transform: translateY(20px); }
@@ -700,9 +804,34 @@
     <div class="hero-clock" id="clock"></div>
   </div>
 
+  <!-- OVERVIEW -->
+  <div class="overview-section">
+    <div class="overview-card">
+      <div class="overview-left">
+        <div class="overview-eyebrow">Hub Overview</div>
+        <div class="overview-title">Your operator workspace</div>
+        <div class="overview-desc">All internal tools for DJI Queensbay Mall — sales analytics, deposits, workshops, reviews, and inventory management in one place.</div>
+      </div>
+      <div class="overview-stats">
+        <div class="stat-chip">
+          <span class="stat-val">5</span>
+          <span class="stat-key">Tools</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-val green">3</span>
+          <span class="stat-key">Live</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-val purple">2</span>
+          <span class="stat-key">Beta</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- TOOLS -->
   <div class="tools-section">
-    <div class="tools-label">Active Tools</div>
+    <div class="tools-label">Quick Access</div>
 
     <div class="tools-grid">
 
@@ -851,14 +980,18 @@
         entries.forEach(entry => {
           if (!entry.isIntersecting) return;
           const el = entry.target;
-          const siblings = [...el.parentElement.children].filter(c => c.classList.contains('tool-card'));
-          const idx = siblings.indexOf(el);
-          el.style.animationDelay = `${idx * 0.08}s`;
-          el.classList.add('anim-in');
+          if (el.classList.contains('overview-card')) {
+            el.classList.add('anim-in');
+          } else {
+            const siblings = [...el.parentElement.children].filter(c => c.classList.contains('tool-card'));
+            const idx = siblings.indexOf(el);
+            el.style.animationDelay = `${idx * 0.08}s`;
+            el.classList.add('anim-in');
+          }
           revealObserver.unobserve(el);
         });
       }, { threshold: 0 });
-      document.querySelectorAll('.tool-card').forEach(c => revealObserver.observe(c));
+      document.querySelectorAll('.overview-card, .tool-card').forEach(c => revealObserver.observe(c));
     }));
 
     const stripObserver = new IntersectionObserver((entries) => {
