@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settings · QBM Operator Hub</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue: #2563eb; --blue-light: #3b82f6; --blue-bright: #60a5fa;
+      --bg: #060a12; --surface: #0d1422; --surface2: #131b2e; --surface3: #1a2440;
+      --border: rgba(255,255,255,0.07); --text: #f1f5f9; --muted: #64748b; --muted2: #94a3b8;
+      --red: #ef4444; --green: #10b981; --orange: #f59e0b;
+    }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg); color: var(--text); min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image: linear-gradient(rgba(37,99,235,0.04) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(37,99,235,0.04) 1px, transparent 1px);
+      background-size: 52px 52px; pointer-events: none;
+    }
+    nav {
+      position: sticky; top: 0; z-index: 100; display: flex; align-items: center; gap: 12px;
+      padding: 0 1.5rem; height: 56px;
+      background: rgba(6,10,18,0.85); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+      border-bottom: 1px solid var(--border);
+    }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600;
+      color: var(--muted2); text-decoration: none; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px;
+      transition: color .18s, border-color .18s;
+    }
+    .back-btn:hover { color: var(--text); border-color: rgba(96,165,250,0.3); }
+    .nav-title { font-size: 15px; font-weight: 800; letter-spacing: -0.01em; }
+
+    .wrap { position: relative; max-width: 760px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
+    .section { margin-bottom: 36px; }
+    .section-label {
+      font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase;
+      letter-spacing: .1em; margin-bottom: 14px; display: flex; align-items: center; gap: 10px;
+    }
+    .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 22px; }
+
+    /* users table */
+    .user-row {
+      display: flex; align-items: center; gap: 12px; padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .user-row:last-child { border-bottom: none; }
+    .user-avatar {
+      width: 36px; height: 36px; border-radius: 10px; background: var(--surface3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 800; color: var(--blue-bright); flex-shrink: 0;
+    }
+    .user-info { flex: 1; min-width: 0; }
+    .user-name { font-size: 14px; font-weight: 700; }
+    .user-meta { font-size: 11px; color: var(--muted); }
+    .role-badge {
+      font-size: 9px; font-weight: 700; padding: 3px 8px; border-radius: 5px;
+      text-transform: uppercase; letter-spacing: .05em;
+    }
+    .role-admin { background: rgba(37,99,235,0.14); color: var(--blue-bright); border: 1px solid rgba(37,99,235,0.28); }
+    .role-staff { background: rgba(255,255,255,0.05); color: var(--muted2); border: 1px solid var(--border); }
+    .row-actions { display: flex; gap: 6px; }
+    .mini-btn {
+      font-size: 10px; font-weight: 600; padding: 5px 10px; border-radius: 6px;
+      border: 1px solid var(--border); background: var(--surface2); color: var(--muted2);
+      cursor: pointer; font-family: inherit; transition: color .15s, border-color .15s;
+      white-space: nowrap;
+    }
+    .mini-btn:hover { color: var(--text); border-color: rgba(96,165,250,0.35); }
+    .mini-btn.danger:hover { color: var(--red); border-color: rgba(239,68,68,0.4); }
+
+    /* forms */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+    .form-grid .full { grid-column: 1 / -1; }
+    input, select {
+      width: 100%; padding: 10px 12px; border-radius: 9px;
+      border: 1.5px solid var(--border); background: var(--surface2); color: var(--text);
+      font-size: 13px; font-family: inherit; outline: none; transition: border-color .18s;
+    }
+    input:focus, select:focus { border-color: var(--blue); }
+    .btn {
+      padding: 10px 18px; border-radius: 9px; border: none; background: var(--blue);
+      color: #fff; font-size: 12px; font-weight: 700; font-family: inherit; cursor: pointer;
+      transition: background .18s;
+    }
+    .btn:hover { background: var(--blue-light); }
+    .btn:disabled { opacity: .5; cursor: default; }
+    .btn.ghost { background: var(--surface2); border: 1px solid var(--border); color: var(--muted2); }
+    .btn.ghost:hover { color: var(--text); }
+
+    /* toggle */
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 13px 0; border-bottom: 1px solid var(--border); }
+    .toggle-row:last-child { border-bottom: none; }
+    .toggle-info { flex: 1; }
+    .toggle-name { font-size: 14px; font-weight: 700; }
+    .toggle-desc { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .switch { position: relative; width: 44px; height: 24px; flex-shrink: 0; cursor: pointer; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; inset: 0; background: var(--surface3); border: 1px solid var(--border);
+      border-radius: 24px; transition: background .2s;
+    }
+    .slider::before {
+      content: ''; position: absolute; width: 18px; height: 18px; left: 2px; top: 2px;
+      background: var(--muted2); border-radius: 50%; transition: transform .2s, background .2s;
+    }
+    .switch input:checked + .slider { background: rgba(245,158,11,0.25); border-color: rgba(245,158,11,0.4); }
+    .switch input:checked + .slider::before { transform: translateX(20px); background: var(--orange); }
+
+    .maint-msg-row { display: flex; gap: 10px; margin-top: 14px; }
+    .maint-msg-row input { flex: 1; }
+
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 300;
+      background: var(--green); color: #fff; border-radius: 20px; padding: 9px 20px;
+      font-size: 12px; font-weight: 700; box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      opacity: 0; pointer-events: none; transition: opacity .25s;
+    }
+    .toast.show { opacity: 1; }
+    .toast.error { background: var(--red); }
+
+    #loading { text-align: center; padding: 80px 0; color: var(--muted); font-size: 13px; }
+    #content { display: none; }
+
+    @media (max-width: 560px) {
+      .wrap { padding: 1.25rem 0.85rem 4rem; }
+      .card { padding: 16px; border-radius: 13px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .row-actions { flex-direction: column; }
+      .user-meta { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="/" class="back-btn">← Hub</a>
+    <span class="nav-title">⚙️ Settings</span>
+  </nav>
+
+  <div class="wrap">
+    <div id="loading">Checking access…</div>
+
+    <div id="content">
+      <!-- USERS -->
+      <div class="section">
+        <div class="section-label">Team Users</div>
+        <div class="card">
+          <div id="user-list"></div>
+          <div class="form-grid" id="add-form">
+            <input id="new-username" placeholder="Username (for login)" autocapitalize="none" />
+            <input id="new-name" placeholder="Display name" />
+            <input id="new-pin" type="password" placeholder="PIN (min 4 digits)" inputmode="numeric" />
+            <select id="new-role">
+              <option value="staff">Staff</option>
+              <option value="admin">Admin</option>
+            </select>
+            <button class="btn full" id="add-btn">+ Add User</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAINTENANCE -->
+      <div class="section">
+        <div class="section-label">Maintenance</div>
+        <div class="card">
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="toggle-name">🛠 Hub Maintenance Mode</div>
+              <div class="toggle-desc">Locks the whole hub for staff — only admins can enter</div>
+            </div>
+            <label class="switch"><input type="checkbox" id="maint-hub" /><span class="slider"></span></label>
+          </div>
+          <div class="maint-msg-row">
+            <input id="maint-msg" placeholder="Maintenance message shown to staff (optional)" />
+            <button class="btn ghost" id="maint-save">Save</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PER-TOOL MAINTENANCE -->
+      <div class="section">
+        <div class="section-label">Tool Maintenance</div>
+        <div class="card" id="tool-toggles">
+          <!-- rows injected -->
+        </div>
+      </div>
+
+      <!-- MY ACCOUNT -->
+      <div class="section">
+        <div class="section-label">My Account</div>
+        <div class="card">
+          <div class="form-grid">
+            <input id="old-pin" type="password" placeholder="Current PIN" inputmode="numeric" />
+            <input id="new-own-pin" type="password" placeholder="New PIN (min 4)" inputmode="numeric" />
+            <button class="btn full ghost" id="change-pin-btn">Change my PIN</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const API = '/.netlify/functions/hub-auth'
+    const TOOLS = [
+      { id: 'storedash', name: '📊 StoreDash' },
+      { id: 'workshop', name: '🎓 Workshop Hub' },
+      { id: 'deposits', name: '💰 Deposit Tracker' },
+      { id: 'reviews', name: '⭐ Review Tracker' },
+      { id: 'inventory', name: '📦 Inventory Tracker' },
+    ]
+
+    let sess = null
+    try { sess = JSON.parse(localStorage.getItem('qbm-hub-session') || 'null') } catch (e) {}
+    if (!sess || !sess.token) location.replace('/login.html')
+
+    function toast(msg, isErr) {
+      const t = document.getElementById('toast')
+      t.textContent = msg
+      t.classList.toggle('error', !!isErr)
+      t.classList.add('show')
+      setTimeout(() => t.classList.remove('show'), 2400)
+    }
+
+    async function post(action, body) {
+      const res = await fetch(API + '?action=' + action, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: sess.token, ...body }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'Request failed')
+      return data
+    }
+
+    function renderUsers(users) {
+      const el = document.getElementById('user-list')
+      el.innerHTML = users.map(u => `
+        <div class="user-row">
+          <div class="user-avatar">${(u.name || u.username).slice(0, 2).toUpperCase()}</div>
+          <div class="user-info">
+            <div class="user-name">${u.name || u.username} ${u.username === sess.user.username ? '<span style="color:var(--muted);font-weight:400;font-size:11px">(you)</span>' : ''}</div>
+            <div class="user-meta">@${u.username} · joined ${(u.createdAt || '').slice(0, 10)}</div>
+          </div>
+          <span class="role-badge role-${u.role}">${u.role}</span>
+          ${u.username !== sess.user.username ? `
+            <div class="row-actions">
+              <button class="mini-btn" onclick="resetPin('${u.username}')">Reset PIN</button>
+              <button class="mini-btn" onclick="toggleRole('${u.username}', '${u.role}')">${u.role === 'admin' ? '→ Staff' : '→ Admin'}</button>
+              <button class="mini-btn danger" onclick="delUser('${u.username}')">Delete</button>
+            </div>` : ''}
+        </div>`).join('')
+    }
+
+    async function loadUsers() {
+      try { renderUsers(await post('list-users', {})) }
+      catch (e) { toast(e.message, true) }
+    }
+
+    window.resetPin = async (username) => {
+      const pin = prompt('New PIN for @' + username + ' (min 4 digits):')
+      if (!pin) return
+      try { await post('reset-pin', { username, pin }); toast('PIN reset for @' + username) }
+      catch (e) { toast(e.message, true) }
+    }
+    window.toggleRole = async (username, role) => {
+      const next = role === 'admin' ? 'staff' : 'admin'
+      if (!confirm('Change @' + username + ' to ' + next.toUpperCase() + '?')) return
+      try { await post('set-role', { username, role: next }); toast('@' + username + ' is now ' + next); loadUsers() }
+      catch (e) { toast(e.message, true) }
+    }
+    window.delUser = async (username) => {
+      if (!confirm('Delete @' + username + '? They will be signed out everywhere.')) return
+      try { await post('delete-user', { username }); toast('@' + username + ' deleted'); loadUsers() }
+      catch (e) { toast(e.message, true) }
+    }
+
+    document.getElementById('add-btn').addEventListener('click', async () => {
+      const username = document.getElementById('new-username').value.trim()
+      const name = document.getElementById('new-name').value.trim()
+      const pin = document.getElementById('new-pin').value
+      const role = document.getElementById('new-role').value
+      if (!username || !pin) return toast('Username and PIN required', true)
+      try {
+        await post('add-user', { username, name, pin, role })
+        toast('@' + username + ' added')
+        document.getElementById('new-username').value = ''
+        document.getElementById('new-name').value = ''
+        document.getElementById('new-pin').value = ''
+        loadUsers()
+      } catch (e) { toast(e.message, true) }
+    })
+
+    // Maintenance
+    async function loadMaintenance() {
+      const d = await fetch(API + '?action=maintenance').then(r => r.json())
+      document.getElementById('maint-hub').checked = !!d.maintenance?.on
+      document.getElementById('maint-msg').value = d.maintenance?.message || ''
+      const tt = document.getElementById('tool-toggles')
+      tt.innerHTML = TOOLS.map(t => `
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-name">${t.name}</div>
+            <div class="toggle-desc">Card shows "Under maintenance" and is disabled on the homepage</div>
+          </div>
+          <label class="switch"><input type="checkbox" data-tool="${t.id}" ${d.tools?.[t.id]?.maintenance ? 'checked' : ''} /><span class="slider"></span></label>
+        </div>`).join('')
+      tt.querySelectorAll('input[data-tool]').forEach(cb => {
+        cb.addEventListener('change', async () => {
+          try {
+            await post('set-tool-maintenance', { tool: cb.dataset.tool, on: cb.checked })
+            toast((cb.checked ? '🛠 ' : '✓ ') + cb.dataset.tool + (cb.checked ? ' under maintenance' : ' back online'))
+          } catch (e) { cb.checked = !cb.checked; toast(e.message, true) }
+        })
+      })
+    }
+
+    async function saveMaint() {
+      try {
+        await post('set-maintenance', {
+          on: document.getElementById('maint-hub').checked,
+          message: document.getElementById('maint-msg').value.trim(),
+        })
+        toast('Maintenance settings saved')
+      } catch (e) { toast(e.message, true) }
+    }
+    document.getElementById('maint-save').addEventListener('click', saveMaint)
+    document.getElementById('maint-hub').addEventListener('change', saveMaint)
+
+    // Change own PIN
+    document.getElementById('change-pin-btn').addEventListener('click', async () => {
+      const oldPin = document.getElementById('old-pin').value
+      const newPin = document.getElementById('new-own-pin').value
+      if (!oldPin || !newPin) return toast('Fill in both PIN fields', true)
+      try {
+        await post('change-pin', { oldPin, newPin })
+        toast('PIN changed')
+        document.getElementById('old-pin').value = ''
+        document.getElementById('new-own-pin').value = ''
+      } catch (e) { toast(e.message, true) }
+    })
+
+    // Boot: verify session + admin role
+    fetch(API + '?action=verify&token=' + encodeURIComponent(sess.token))
+      .then(r => r.json())
+      .then(d => {
+        if (!d.ok) { localStorage.removeItem('qbm-hub-session'); location.replace('/login.html'); return }
+        sess.user = d.user
+        if (d.user.role !== 'admin') { location.replace('/'); return }
+        document.getElementById('loading').style.display = 'none'
+        document.getElementById('content').style.display = 'block'
+        loadUsers()
+        loadMaintenance()
+      })
+      .catch(() => { document.getElementById('loading').textContent = 'Network error — refresh to retry' })
+  </script>
+</body>
+</html>

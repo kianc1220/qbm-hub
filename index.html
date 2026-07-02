@@ -27,6 +27,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <script>
+    // Auth guard — before paint
+    var HUB_SESSION = null
+    try { HUB_SESSION = JSON.parse(localStorage.getItem('qbm-hub-session') || 'null') } catch (e) {}
+    if (!HUB_SESSION || !HUB_SESSION.token) location.replace('/login.html')
+  </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -563,6 +569,110 @@
     .footer-copy { font-size: 11px; color: var(--muted); text-align: right; }
     .footer-copy strong { color: var(--muted2); font-weight: 600; }
 
+    /* ── SIDEBAR ── */
+    .menu-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 34px; height: 34px; border-radius: 9px;
+      background: var(--surface2); border: 1px solid var(--border);
+      cursor: pointer; transition: border-color .18s;
+      flex-shrink: 0;
+    }
+    .menu-btn:hover { border-color: rgba(96,165,250,0.35); }
+    .menu-btn svg { width: 16px; height: 16px; stroke: var(--muted2); }
+
+    .sidebar-backdrop {
+      position: fixed; inset: 0; z-index: 400;
+      background: rgba(0,0,0,0.55); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+      opacity: 0; pointer-events: none; transition: opacity .25s;
+    }
+    .sidebar-backdrop.open { opacity: 1; pointer-events: auto; }
+
+    .sidebar {
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 401;
+      width: 280px; max-width: 84vw;
+      background: var(--surface); border-right: 1px solid var(--border);
+      transform: translateX(-100%); transition: transform .28s cubic-bezier(.22,1,.36,1);
+      display: flex; flex-direction: column;
+    }
+    .sidebar.open { transform: translateX(0); }
+
+    .sidebar-head {
+      display: flex; align-items: center; gap: 10px;
+      padding: 16px 18px; border-bottom: 1px solid var(--border);
+    }
+    .sidebar-head .nav-logo { width: 30px; height: 30px; }
+    .sidebar-head-name { font-size: 14px; font-weight: 800; letter-spacing: -0.01em; flex: 1; }
+    .sidebar-close {
+      width: 28px; height: 28px; border-radius: 7px; border: 1px solid var(--border);
+      background: var(--surface2); color: var(--muted2); cursor: pointer; font-size: 13px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .sidebar-body { flex: 1; overflow-y: auto; padding: 14px 12px; }
+    .sidebar-section {
+      font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase;
+      letter-spacing: .1em; padding: 12px 8px 7px;
+    }
+    .sidebar-link {
+      display: flex; align-items: center; gap: 11px;
+      padding: 10px 10px; border-radius: 10px;
+      color: var(--text); text-decoration: none; font-size: 13px; font-weight: 600;
+      transition: background .15s;
+    }
+    .sidebar-link:hover { background: var(--surface2); }
+    .sidebar-link .sl-icon { font-size: 16px; width: 22px; text-align: center; }
+    .sidebar-link .sl-badge {
+      margin-left: auto; font-size: 8px; font-weight: 700; padding: 2px 7px; border-radius: 5px;
+      text-transform: uppercase; letter-spacing: .05em;
+    }
+    .sidebar-link.maint { opacity: .45; pointer-events: none; }
+
+    .sidebar-foot { border-top: 1px solid var(--border); padding: 14px 16px; display: flex; align-items: center; gap: 10px; }
+    .sidebar-user-avatar {
+      width: 34px; height: 34px; border-radius: 10px; background: var(--surface3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 800; color: var(--blue-bright); flex-shrink: 0;
+    }
+    .sidebar-user-info { flex: 1; min-width: 0; }
+    .sidebar-user-name { font-size: 12px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sidebar-user-role { font-size: 10px; color: var(--muted); text-transform: capitalize; }
+    .sidebar-logout {
+      font-size: 10px; font-weight: 700; color: var(--muted2);
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 7px;
+      padding: 6px 11px; cursor: pointer; font-family: inherit; transition: color .15s, border-color .15s;
+    }
+    .sidebar-logout:hover { color: #f87171; border-color: rgba(239,68,68,0.35); }
+
+    /* ── TOOL MAINTENANCE STATE ── */
+    .tool-card.maint { pointer-events: none; }
+    .tool-card.maint > * { opacity: .35; }
+    .tool-card.maint::after {
+      content: '🛠 Under Maintenance';
+      position: absolute; inset: 0; z-index: 2;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 800; color: #f59e0b;
+      letter-spacing: .04em;
+      background: rgba(6,10,18,0.55);
+    }
+
+    /* ── HUB MAINTENANCE SCREEN ── */
+    #maint-screen {
+      position: fixed; inset: 0; z-index: 9996; display: none;
+      background: linear-gradient(160deg, #080d1a 0%, #0a1628 45%, #0d1f3c 100%);
+      flex-direction: column; align-items: center; justify-content: center; text-align: center;
+      padding: 0 2rem;
+    }
+    #maint-screen .mi { font-size: 52px; margin-bottom: 20px; }
+    #maint-screen h2 { color: #fff; font-size: 22px; font-weight: 800; margin: 0 0 10px; letter-spacing: -.02em; }
+    #maint-screen p { color: rgba(255,255,255,.45); font-size: 14px; margin: 0 0 28px; line-height: 1.6; max-width: 380px; }
+    #maint-screen .mb {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(245,158,11,.08); border: 1px solid rgba(245,158,11,.25);
+      border-radius: 12px; padding: 10px 20px;
+      color: #f59e0b; font-size: 12px; font-weight: 700; letter-spacing: .05em;
+    }
+    #maint-screen .ml { margin-top: 26px; font-size: 12px; color: rgba(255,255,255,.35); cursor: pointer; text-decoration: underline; background: none; border: none; font-family: inherit; }
+
     /* ── RESPONSIVE ── */
     @media (max-width: 640px) {
       nav { padding: 0 0.85rem; height: 52px; }
@@ -802,14 +912,57 @@
     })();
   </script>
 
+  <!-- Hub maintenance screen (staff only) -->
+  <div id="maint-screen">
+    <div class="mi">🛠️</div>
+    <h2>Under Maintenance</h2>
+    <p id="maint-screen-msg">The Operator Hub is being upgraded. Please check back shortly.</p>
+    <div class="mb">⚙ MAINTENANCE IN PROGRESS</div>
+    <button class="ml" id="maint-logout">Sign in as a different user</button>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+      <div class="nav-logo"><img src="/icon.svg" alt="QBM" /></div>
+      <span class="sidebar-head-name">QBM Hub</span>
+      <button class="sidebar-close" id="sidebar-close">✕</button>
+    </div>
+    <div class="sidebar-body">
+      <div class="sidebar-section">Tools</div>
+      <a href="/storedash" class="sidebar-link" data-tool="storedash"><span class="sl-icon">📊</span> StoreDash <span class="sl-badge badge-live">Live</span></a>
+      <a href="/workshop/" class="sidebar-link" data-tool="workshop"><span class="sl-icon">🎓</span> Workshop Hub <span class="sl-badge badge-live">Live</span></a>
+      <a href="/deposits/" class="sidebar-link" data-tool="deposits"><span class="sl-icon">💰</span> Deposit Tracker <span class="sl-badge badge-live">Live</span></a>
+      <a href="/reviews/" class="sidebar-link" data-tool="reviews"><span class="sl-icon">⭐</span> Review Tracker <span class="sl-badge badge-beta">Beta</span></a>
+      <a href="/inventory/" class="sidebar-link" data-tool="inventory"><span class="sl-icon">📦</span> Inventory Tracker <span class="sl-badge badge-beta">Beta</span></a>
+      <div class="sidebar-section">System</div>
+      <a href="/settings.html" class="sidebar-link" id="sidebar-settings" style="display:none"><span class="sl-icon">⚙️</span> Settings</a>
+      <a href="#" class="sidebar-link" id="sidebar-refresh"><span class="sl-icon">🔄</span> Refresh Stats</a>
+    </div>
+    <div class="sidebar-foot">
+      <div class="sidebar-user-avatar" id="sidebar-avatar">–</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name" id="sidebar-username">–</div>
+        <div class="sidebar-user-role" id="sidebar-role">–</div>
+      </div>
+      <button class="sidebar-logout" id="sidebar-logout">Sign out</button>
+    </div>
+  </aside>
+
   <!-- NAV -->
   <nav>
-    <a href="/" class="nav-brand">
-      <div class="nav-logo">
-        <img src="/icon.svg" alt="QBM" />
-      </div>
-      <span class="nav-name">DJI <span>QBM</span> Operator Hub</span>
-    </a>
+    <div style="display:flex;align-items:center;gap:12px;min-width:0">
+      <button class="menu-btn" id="menu-btn" aria-label="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <a href="/" class="nav-brand">
+        <div class="nav-logo">
+          <img src="/icon.svg" alt="QBM" />
+        </div>
+        <span class="nav-name">DJI <span>QBM</span> Operator Hub</span>
+      </a>
+    </div>
     <div class="nav-right">
 
       <a href="/workshop/" class="nav-btn" style="background:rgba(37,99,235,0.12);color:var(--blue-bright);border:1px solid rgba(37,99,235,0.28);">
@@ -879,7 +1032,7 @@
 
     <div class="tools-grid">
 
-      <a href="/storedash" class="tool-card">
+      <a href="/storedash" class="tool-card" data-tool="storedash">
         <div class="tool-card-top">
           <div class="tool-card-icon">📊</div>
           <span class="badge badge-live">● Live</span>
@@ -894,7 +1047,7 @@
         </div>
       </a>
 
-      <a href="/workshop/" class="tool-card">
+      <a href="/workshop/" class="tool-card" data-tool="workshop">
         <div class="tool-card-top">
           <div class="tool-card-icon">🎓</div>
           <span class="badge badge-live">● Live</span>
@@ -909,7 +1062,7 @@
         </div>
       </a>
 
-      <a href="/deposits/" class="tool-card">
+      <a href="/deposits/" class="tool-card" data-tool="deposits">
         <div class="tool-card-top">
           <div class="tool-card-icon">💰</div>
           <span class="badge badge-live">● Live</span>
@@ -924,7 +1077,7 @@
         </div>
       </a>
 
-      <a href="/reviews/" class="tool-card">
+      <a href="/reviews/" class="tool-card" data-tool="reviews">
         <div class="tool-card-top">
           <div class="tool-card-icon">⭐</div>
           <span class="badge badge-beta">● Beta</span>
@@ -939,7 +1092,7 @@
         </div>
       </a>
 
-      <a href="/inventory/" class="tool-card">
+      <a href="/inventory/" class="tool-card" data-tool="inventory">
         <div class="tool-card-top">
           <div class="tool-card-icon">📦</div>
           <span class="badge badge-beta">● Beta</span>
@@ -995,12 +1148,80 @@
       });
     }
 
-    // Greeting based on hour
-    const h = new Date().getHours();
-    document.getElementById('greeting').textContent =
-      h < 12 ? 'Good morning, team.' :
-      h < 17 ? 'Good afternoon, team.' :
-               'Good evening, team.';
+    // Greeting based on hour — personalised with logged-in name
+    const AUTH_API = '/.netlify/functions/hub-auth'
+    function setGreeting(name) {
+      const h = new Date().getHours();
+      const who = name || 'team';
+      const g = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+      document.getElementById('greeting').textContent = `${g}, ${who}.`;
+      const hs = document.getElementById('hs-greet');
+      if (hs) hs.textContent = `${g}, ${who}.`;
+    }
+    setGreeting(HUB_SESSION?.user?.name);
+
+    // ── Session verify + sidebar user info ──
+    function doLogout() {
+      const t = HUB_SESSION?.token;
+      localStorage.removeItem('qbm-hub-session');
+      fetch(AUTH_API + '?action=logout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: t }) })
+        .finally(() => location.replace('/login.html'));
+    }
+
+    if (HUB_SESSION?.user) {
+      const u = HUB_SESSION.user;
+      document.getElementById('sidebar-avatar').textContent = (u.name || u.username || '?').slice(0, 2).toUpperCase();
+      document.getElementById('sidebar-username').textContent = u.name || u.username;
+      document.getElementById('sidebar-role').textContent = u.role || 'staff';
+      if (u.role === 'admin') document.getElementById('sidebar-settings').style.display = 'flex';
+    }
+
+    fetch(AUTH_API + '?action=verify&token=' + encodeURIComponent(HUB_SESSION?.token || ''))
+      .then(r => r.json())
+      .then(d => {
+        if (!d.ok) { localStorage.removeItem('qbm-hub-session'); location.replace('/login.html'); return }
+        // refresh cached user info (role may have changed)
+        HUB_SESSION.user = d.user;
+        localStorage.setItem('qbm-hub-session', JSON.stringify(HUB_SESSION));
+        setGreeting(d.user.name);
+        document.getElementById('sidebar-avatar').textContent = (d.user.name || d.user.username).slice(0, 2).toUpperCase();
+        document.getElementById('sidebar-username').textContent = d.user.name || d.user.username;
+        document.getElementById('sidebar-role').textContent = d.user.role;
+        document.getElementById('sidebar-settings').style.display = d.user.role === 'admin' ? 'flex' : 'none';
+        applyMaintenance(d.user.role);
+      })
+      .catch(() => { applyMaintenance(HUB_SESSION?.user?.role) });
+
+    // ── Maintenance ──
+    function applyMaintenance(role) {
+      fetch(AUTH_API + '?action=maintenance')
+        .then(r => r.json())
+        .then(d => {
+          if (d.maintenance?.on && role !== 'admin') {
+            if (d.maintenance.message) document.getElementById('maint-screen-msg').textContent = d.maintenance.message;
+            document.getElementById('maint-screen').style.display = 'flex';
+            return;
+          }
+          Object.entries(d.tools || {}).forEach(([tool, cfg]) => {
+            if (!cfg.maintenance) return;
+            document.querySelectorAll(`[data-tool="${tool}"]`).forEach(el => el.classList.add('maint'));
+          });
+        })
+        .catch(() => {});
+    }
+    document.getElementById('maint-logout').addEventListener('click', doLogout);
+
+    // ── Sidebar ──
+    const sidebar = document.getElementById('sidebar');
+    const backdrop = document.getElementById('sidebar-backdrop');
+    function openSidebar() { sidebar.classList.add('open'); backdrop.classList.add('open'); }
+    function closeSidebar() { sidebar.classList.remove('open'); backdrop.classList.remove('open'); }
+    document.getElementById('menu-btn').addEventListener('click', openSidebar);
+    document.getElementById('sidebar-close').addEventListener('click', closeSidebar);
+    backdrop.addEventListener('click', closeSidebar);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSidebar(); });
+    document.getElementById('sidebar-logout').addEventListener('click', doLogout);
+    document.getElementById('sidebar-refresh').addEventListener('click', e => { e.preventDefault(); location.reload(); });
 
     // Live clock
     function tick() {

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign in · QBM Operator Hub</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue: #2563eb; --blue-light: #3b82f6; --blue-bright: #60a5fa;
+      --bg: #060a12; --surface: #0d1422; --surface2: #131b2e;
+      --border: rgba(255,255,255,0.07); --text: #f1f5f9; --muted: #64748b; --muted2: #94a3b8;
+      --red: #ef4444;
+    }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      -webkit-font-smoothing: antialiased; padding: 1.5rem;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image: linear-gradient(rgba(37,99,235,0.04) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(37,99,235,0.04) 1px, transparent 1px);
+      background-size: 52px 52px; pointer-events: none;
+    }
+    .login-card {
+      position: relative; width: 100%; max-width: 380px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 22px; padding: 40px 34px 34px;
+      animation: pop .5s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    @keyframes pop { from { transform: scale(.94) translateY(10px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+    .login-card::before {
+      content: ''; position: absolute; top: 0; left: 0; width: 200px; height: 100%;
+      background: linear-gradient(135deg, rgba(37,99,235,0.08) 0%, transparent 70%);
+      pointer-events: none; border-radius: 22px;
+    }
+    .logo { width: 52px; height: 52px; border-radius: 14px; overflow: hidden; margin: 0 auto 18px; box-shadow: 0 0 24px rgba(37,99,235,0.4); }
+    .logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; text-align: center; margin-bottom: 4px; }
+    .sub { font-size: 12px; color: var(--muted2); text-align: center; margin-bottom: 28px; }
+    label { font-size: 11px; font-weight: 700; color: var(--muted2); text-transform: uppercase; letter-spacing: .08em; display: block; margin-bottom: 7px; }
+    input {
+      width: 100%; padding: 12px 14px; border-radius: 10px;
+      border: 1.5px solid var(--border); background: var(--surface2); color: var(--text);
+      font-size: 15px; font-family: inherit; outline: none; margin-bottom: 18px;
+      transition: border-color .18s;
+    }
+    input:focus { border-color: var(--blue); }
+    input.err { border-color: var(--red); }
+    button {
+      width: 100%; padding: 13px; border-radius: 10px; border: none;
+      background: var(--blue); color: #fff; font-size: 14px; font-weight: 700;
+      font-family: inherit; cursor: pointer; transition: background .18s, box-shadow .18s;
+    }
+    button:hover { background: var(--blue-light); box-shadow: 0 0 20px rgba(37,99,235,0.4); }
+    button:disabled { opacity: .5; cursor: default; box-shadow: none; }
+    .error { font-size: 12px; color: var(--red); text-align: center; margin: -8px 0 14px; min-height: 15px; }
+    .foot { font-size: 10px; color: var(--muted); text-align: center; margin-top: 22px; letter-spacing: .04em; }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="logo"><img src="/icon.svg" alt="QBM" /></div>
+    <h1>QBM Operator Hub</h1>
+    <p class="sub">Sign in to continue · DJI Queensbay Mall</p>
+    <form id="login-form">
+      <label for="username">Username</label>
+      <input id="username" type="text" autocomplete="username" autocapitalize="none" required autofocus />
+      <label for="pin">PIN</label>
+      <input id="pin" type="password" autocomplete="current-password" inputmode="numeric" required />
+      <p class="error" id="error"></p>
+      <button type="submit" id="btn">Sign in</button>
+    </form>
+    <p class="foot">Internal use only · Ask your manager for access</p>
+  </div>
+
+  <script>
+    // Already logged in? Verify then go home
+    (function () {
+      try {
+        var sess = JSON.parse(localStorage.getItem('qbm-hub-session') || 'null')
+        if (sess && sess.token) {
+          fetch('/.netlify/functions/hub-auth?action=verify&token=' + encodeURIComponent(sess.token))
+            .then(r => { if (r.ok) location.replace('/') })
+            .catch(() => {})
+        }
+      } catch (e) {}
+    })()
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault()
+      const btn = document.getElementById('btn')
+      const errEl = document.getElementById('error')
+      const u = document.getElementById('username')
+      const p = document.getElementById('pin')
+      btn.disabled = true; btn.textContent = 'Signing in…'; errEl.textContent = ''
+      u.classList.remove('err'); p.classList.remove('err')
+      try {
+        const res = await fetch('/.netlify/functions/hub-auth?action=login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: u.value.trim(), pin: p.value }),
+        })
+        const data = await res.json()
+        if (res.ok && data.token) {
+          localStorage.setItem('qbm-hub-session', JSON.stringify(data))
+          location.replace('/')
+        } else {
+          errEl.textContent = data.error || 'Sign in failed'
+          u.classList.add('err'); p.classList.add('err')
+          btn.disabled = false; btn.textContent = 'Sign in'
+        }
+      } catch {
+        errEl.textContent = 'Network error — try again'
+        btn.disabled = false; btn.textContent = 'Sign in'
+      }
+    })
+  </script>
+</body>
+</html>
