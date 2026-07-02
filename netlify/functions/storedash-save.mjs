@@ -16,9 +16,11 @@ export default async (req) => {
     if (key !== saveKey) return new Response(JSON.stringify({ error: 'Wrong PIN' }), { headers: CORS, status: 401 })
     if (!csvText) return new Response(JSON.stringify({ error: 'No CSV data' }), { headers: CORS, status: 400 })
 
-    // Parse revenue from CSV header: "Total Sales : (MYR)123456.78"
+    // Parse revenue from CSV header as fallback: "Total Sales : (MYR)123456.78"
+    // Prefer client revenue (outlet-filtered view) over raw CSV total (all outlets)
     const revMatch = csvText.match(/Total Sales\s*:\s*\(MYR\)([\d.,]+)/i)
-    const revenue = revMatch ? Math.round(parseFloat(revMatch[1].replace(/,/g, ''))) : (clientRevenue || null)
+    const csvRevenue = revMatch ? Math.round(parseFloat(revMatch[1].replace(/,/g, ''))) : null
+    const revenue = clientRevenue || csvRevenue
 
     // Slug the filename into a safe blob key
     const slugKey = 'file-' + (filename || 'report')
